@@ -101,4 +101,15 @@ impl Color {
             Color::Yellow => (1., 1., 0.),
         }
     }
+
+    pub fn name(&self) -> &'static str {
+        match self {
+            Color::Red => "Red",
+            Color::Green => "Green",
+            Color::Blue => "Blue",
+            Color::Cyan => "Cyan",
+            Color::Magenta => "Magenta",
+            Color::Yellow => "Yellow",
+        }
+    }
 }

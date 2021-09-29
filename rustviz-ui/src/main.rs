@@ -57,8 +57,12 @@ impl ObjectContainer {
         let mut text_buffer = String::new();
         for (id, object) in &self.objects {
             text_buffer.push_str(&format!(
-                "{} [{:.2}, {:.2}, {:.2}]",
-                id, object.last_pose.0, object.last_pose.1, object.last_pose.2
+                "{}: {} [{:.2} {:.2} {:.2}] \n",
+                id,
+                object.last_color.name(),
+                object.last_pose.0,
+                object.last_pose.1,
+                object.last_pose.2,
             ));
         }
         text_buffer
@@ -71,6 +75,7 @@ struct VisualizerObject {
     last_update: Instant,
     timeout: Duration,
     last_pose: (f32, f32, f32),
+    last_color: Color,
 }
 
 impl VisualizerObject {
@@ -82,6 +87,7 @@ impl VisualizerObject {
             last_update: Instant::now(),
             current_shape: object_info.shape,
             last_pose: object_info.pose,
+            last_color: object_info.color,
         };
         object.update_pose(object_info.pose);
         object.update_color(object_info.color);
@@ -107,6 +113,7 @@ impl VisualizerObject {
     }
 
     fn update_color(&mut self, color: Color) {
+        self.last_color = color;
         let color = color.to_rgb();
         self.node.set_color(color.0, color.1, color.2);
     }
