@@ -21,8 +21,8 @@ impl PoseClientUpdate {
         self.objects.push(object);
     }
 
-    pub fn delete(&mut self, id: String) {
-        self.delete.push(id);
+    pub fn delete(&mut self, id: &str) {
+        self.delete.push(id.to_owned());
     }
 
     pub fn updates(&self) -> &Vec<ObjectPose> {
@@ -48,9 +48,9 @@ pub struct ObjectPose {
 }
 
 impl ObjectPose {
-    pub fn with_defaults(id: String, pose: na::Point3<f32>) -> Self {
+    pub fn with_defaults(id: &str, pose: na::Point3<f32>) -> Self {
         ObjectPose {
-            id,
+            id: id.to_owned(),
             pose,
             timeout: DEFAULT_TIMEOUT,
             shape: DEFAULT_SHAPE,

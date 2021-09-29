@@ -18,8 +18,7 @@ fn main() -> Result<(), PosePublisherError> {
         for i in (0..=100).rev() {
             let i = i as f32;
             std::thread::sleep(std::time::Duration::from_secs_f32(0.02));
-            let obj_a =
-                ObjectPose::with_defaults("hi".to_owned(), na::Point3::new(0., 0., 0.01 * i));
+            let obj_a = ObjectPose::with_defaults("hi", na::Point3::new(0., 0., 0.01 * i));
             let mut update = PoseClientUpdate::new("test publisher");
             update.add(obj_a);
             pose_publisher.publish(update)?;
@@ -27,15 +26,14 @@ fn main() -> Result<(), PosePublisherError> {
         for i in 0..=100 {
             let i = i as f32;
             std::thread::sleep(std::time::Duration::from_secs_f32(0.02));
-            let obj_a =
-                ObjectPose::with_defaults("hi".to_owned(), na::Point3::new(0., 0., 0.01 * i));
+            let obj_a = ObjectPose::with_defaults("hi", na::Point3::new(0., 0., 0.01 * i));
             let mut update = PoseClientUpdate::new("test publisher");
             update.add(obj_a);
             pose_publisher.publish(update)?;
         }
     }
     let mut update = PoseClientUpdate::new("test publisher");
-    update.delete("hi".to_owned());
+    update.delete("hi");
     pose_publisher.publish(update)?;
     Ok(())
 }
