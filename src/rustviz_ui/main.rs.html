@@ -162,25 +162,31 @@
 <span id="162">162</span>
 <span id="163">163</span>
 <span id="164">164</span>
+<span id="165">165</span>
+<span id="166">166</span>
+<span id="167">167</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">anyhow::Result</span>;
 <span class="kw">use</span> <span class="ident">clap::Clap</span>;
 <span class="kw">use</span> <span class="ident">kiss3d</span>::{<span class="ident">light::Light</span>, <span class="ident">scene::SceneNode</span>, <span class="ident">window::Window</span>};
 <span class="kw">use</span> <span class="ident">nalgebra</span> <span class="kw">as</span> <span class="ident">na</span>;
-<span class="kw">use</span> <span class="ident">pose_publisher</span>::{<span class="ident">pose::Shape</span>, <span class="ident">ObjectPose</span>, <span class="ident">PoseSubscriber</span>};
+<span class="kw">use</span> <span class="ident">pose_publisher</span>::{
+    <span class="ident">pose</span>::{<span class="ident">Color</span>, <span class="ident">Shape</span>},
+    <span class="ident">ObjectPose</span>, <span class="ident">PoseSubscriber</span>,
+};
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">collections::HashMap</span>,
     <span class="ident">net::SocketAddrV4</span>,
     <span class="ident">time</span>::{<span class="ident">Duration</span>, <span class="ident">Instant</span>},
 };
 
-<span class="kw">fn</span> <span class="ident">convert_coordinate_system</span>(<span class="ident">position</span>: <span class="ident">na::Vector3</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">na::Vector3</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span> {
-    <span class="ident">na::Vector3::new</span>(<span class="ident">position</span>.<span class="ident">y</span>, <span class="ident">position</span>.<span class="ident">z</span>, <span class="ident">position</span>.<span class="ident">x</span>)
+<span class="kw">fn</span> <span class="ident">convert_coordinate_system</span>(<span class="ident">position</span>: (<span class="ident">f32</span>, <span class="ident">f32</span>, <span class="ident">f32</span>)) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">na::Vector3</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span> {
+    <span class="ident">na::Vector3::new</span>(<span class="ident">position</span>.<span class="number">1</span>, <span class="ident">position</span>.<span class="number">2</span>, <span class="ident">position</span>.<span class="number">0</span>)
 }
 
 <span class="kw">fn</span> <span class="ident">attach_node_type</span>(<span class="ident">shape</span>: <span class="ident">Shape</span>, <span class="ident">window</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Window</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">SceneNode</span> {
     <span class="kw">match</span> <span class="ident">shape</span> {
-        <span class="ident">Shape::Sphere</span> <span class="op">=</span><span class="op">&gt;</span> <span class="ident">window</span>.<span class="ident">add_sphere</span>(<span class="number">0.01</span>),
+        <span class="ident">Shape::Sphere</span>(<span class="ident">radius</span>) <span class="op">=</span><span class="op">&gt;</span> <span class="ident">window</span>.<span class="ident">add_sphere</span>(<span class="ident">radius</span>),
     }
 }
 
@@ -242,20 +248,20 @@
         <span class="self">self</span>.<span class="ident">update_color</span>(<span class="ident">update</span>.<span class="ident">color</span>);
         <span class="self">self</span>.<span class="ident">timeout</span> <span class="op">=</span> <span class="ident">Duration::from_secs_f32</span>(<span class="ident">update</span>.<span class="ident">timeout</span>);
         <span class="kw">if</span> <span class="self">self</span>.<span class="ident">current_shape</span> <span class="op">!</span><span class="op">=</span> <span class="ident">update</span>.<span class="ident">shape</span> {
+            <span class="self">self</span>.<span class="ident">current_shape</span> <span class="op">=</span> <span class="ident">update</span>.<span class="ident">shape</span>;
             <span class="self">self</span>.<span class="ident">node</span>.<span class="ident">unlink</span>();
             <span class="self">self</span>.<span class="ident">node</span> <span class="op">=</span> <span class="ident">attach_node_type</span>(<span class="ident">update</span>.<span class="ident">shape</span>, <span class="ident">window</span>);
         }
     }
 
-    <span class="kw">fn</span> <span class="ident">update_pose</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">pose</span>: <span class="ident">na::Point3</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>) {
+    <span class="kw">fn</span> <span class="ident">update_pose</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">pose</span>: (<span class="ident">f32</span>, <span class="ident">f32</span>, <span class="ident">f32</span>)) {
         <span class="self">self</span>.<span class="ident">node</span>
-            .<span class="ident">set_local_translation</span>(<span class="ident">na::Translation3::from</span>(<span class="ident">convert_coordinate_system</span>(
-                <span class="ident">pose</span>.<span class="ident">coords</span>,
-            )));
+            .<span class="ident">set_local_translation</span>(<span class="ident">na::Translation3::from</span>(<span class="ident">convert_coordinate_system</span>(<span class="ident">pose</span>)));
     }
 
-    <span class="kw">fn</span> <span class="ident">update_color</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">color</span>: <span class="ident">na::Vector3</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>) {
-        <span class="self">self</span>.<span class="ident">node</span>.<span class="ident">set_color</span>(<span class="ident">color</span>.<span class="ident">x</span>, <span class="ident">color</span>.<span class="ident">y</span>, <span class="ident">color</span>.<span class="ident">z</span>);
+    <span class="kw">fn</span> <span class="ident">update_color</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">color</span>: <span class="ident">Color</span>) {
+        <span class="kw">let</span> <span class="ident">color</span> <span class="op">=</span> <span class="ident">color</span>.<span class="ident">to_rgb</span>();
+        <span class="self">self</span>.<span class="ident">node</span>.<span class="ident">set_color</span>(<span class="ident">color</span>.<span class="number">0</span>, <span class="ident">color</span>.<span class="number">1</span>, <span class="ident">color</span>.<span class="number">2</span>);
     }
 
     <span class="kw">fn</span> <span class="ident">touch</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>) {

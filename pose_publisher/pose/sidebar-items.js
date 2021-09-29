@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["Shape",""]],"struct":[["ObjectPose",""],["PoseClientUpdate",""]]});
+initSidebarItems({"enum":[["Color",""],["Shape",""]],"struct":[["ObjectPose",""],["PoseClientUpdate",""]]});
