@@ -166,6 +166,13 @@
 <span id="166">166</span>
 <span id="167">167</span>
 <span id="168">168</span>
+<span id="169">169</span>
+<span id="170">170</span>
+<span id="171">171</span>
+<span id="172">172</span>
+<span id="173">173</span>
+<span id="174">174</span>
+<span id="175">175</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">anyhow::Result</span>;
 <span class="kw">use</span> <span class="ident">clap::Clap</span>;
@@ -298,7 +305,13 @@
     <span class="ident">window</span>.<span class="ident">set_light</span>(<span class="ident">Light::StickToCamera</span>);
     <span class="ident">add_ground_plane</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">window</span>);
 
-    <span class="kw">while</span> <span class="ident">window</span>.<span class="ident">render</span>() {
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">camera</span> <span class="op">=</span> <span class="ident">kiss3d::camera::ArcBall::new</span>(
+        <span class="ident">na::Point3::new</span>(<span class="number">1.0</span>, <span class="number">1.0</span>, <span class="number">1.0</span>),
+        <span class="ident">na::Point3::new</span>(<span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>),
+    );
+    <span class="ident">camera</span>.<span class="ident">set_dist_step</span>(<span class="number">10.0</span>);
+
+    <span class="kw">while</span> <span class="op">!</span><span class="ident">window</span>.<span class="ident">should_close</span>() {
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">update</span>) <span class="op">=</span> <span class="ident">pose_subscriber</span>.<span class="ident">next</span>() {
             <span class="kw">for</span> <span class="ident">object_update</span> <span class="kw">in</span> <span class="ident">update</span>.<span class="ident">updates</span>() {
                 <span class="ident">object_container</span>.<span class="ident">update_object</span>(<span class="ident">object_update</span>, <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">window</span>);
@@ -308,6 +321,7 @@
             }
         }
         <span class="ident">object_container</span>.<span class="ident">remove_timed_out</span>();
+        <span class="ident">window</span>.<span class="ident">render_with_camera</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">camera</span>);
     }
     <span class="prelude-val">Ok</span>(())
 }
