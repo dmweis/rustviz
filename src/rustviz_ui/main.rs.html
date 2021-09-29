@@ -414,7 +414,7 @@
         <span class="ident">na::Point3::new</span>(<span class="number">1.0</span>, <span class="number">1.0</span>, <span class="number">1.0</span>),
         <span class="ident">na::Point3::new</span>(<span class="number">0.0</span>, <span class="number">0.0</span>, <span class="number">0.0</span>),
     );
-    <span class="ident">camera</span>.<span class="ident">set_dist_step</span>(<span class="number">10.0</span>);
+    <span class="ident">camera</span>.<span class="ident">set_dist_step</span>(<span class="number">4.0</span>);
 
     <span class="kw">while</span> <span class="op">!</span><span class="ident">window</span>.<span class="ident">should_close</span>() {
         <span class="kw">while</span> <span class="kw">let</span> <span class="prelude-val">Ok</span>(<span class="ident">update</span>) <span class="op">=</span> <span class="ident">pose_subscriber</span>.<span class="ident">next</span>() {
