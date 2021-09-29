@@ -68,7 +68,7 @@
             <span class="ident">std::thread::sleep</span>(<span class="ident">std::time::Duration::from_secs_f32</span>(<span class="number">0.02</span>));
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">update</span> <span class="op">=</span> <span class="ident">PoseClientUpdate::new</span>();
             <span class="ident">update</span>
-                .<span class="ident">add</span>(<span class="string">&quot;hi&quot;</span>, (<span class="number">0.</span>, <span class="number">0.</span>, <span class="number">0.01</span> <span class="op">*</span> <span class="ident">i</span>))
+                .<span class="ident">add</span>(<span class="string">&quot;obj_a&quot;</span>, (<span class="number">0.</span>, <span class="number">0.</span>, <span class="number">0.01</span> <span class="op">*</span> <span class="ident">i</span>))
                 .<span class="ident">with_shape</span>(<span class="ident">Shape::Sphere</span>(<span class="number">0.4</span>));
 
             <span class="ident">pose_publisher</span>.<span class="ident">publish</span>(<span class="ident">update</span>)<span class="question-mark">?</span>;
@@ -78,14 +78,14 @@
             <span class="ident">std::thread::sleep</span>(<span class="ident">std::time::Duration::from_secs_f32</span>(<span class="number">0.02</span>));
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">update</span> <span class="op">=</span> <span class="ident">PoseClientUpdate::new</span>();
             <span class="ident">update</span>
-                .<span class="ident">add</span>(<span class="string">&quot;hi&quot;</span>, (<span class="number">0.</span>, <span class="number">0.</span>, <span class="number">0.01</span> <span class="op">*</span> <span class="ident">i</span>))
+                .<span class="ident">add</span>(<span class="string">&quot;obj_a&quot;</span>, (<span class="number">0.</span>, <span class="number">0.</span>, <span class="number">0.01</span> <span class="op">*</span> <span class="ident">i</span>))
                 .<span class="ident">with_color</span>(<span class="ident">Color::Cyan</span>)
                 .<span class="ident">with_shape</span>(<span class="ident">Shape::Cube</span>(<span class="number">0.3</span>, <span class="number">0.01</span>, <span class="number">0.01</span>));
             <span class="ident">pose_publisher</span>.<span class="ident">publish</span>(<span class="ident">update</span>)<span class="question-mark">?</span>;
         }
     }
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">update</span> <span class="op">=</span> <span class="ident">PoseClientUpdate::new</span>();
-    <span class="ident">update</span>.<span class="ident">delete</span>(<span class="string">&quot;hi&quot;</span>);
+    <span class="ident">update</span>.<span class="ident">delete</span>(<span class="string">&quot;obj_a&quot;</span>);
     <span class="ident">pose_publisher</span>.<span class="ident">publish</span>(<span class="ident">update</span>)<span class="question-mark">?</span>;
     <span class="prelude-val">Ok</span>(())
 }
