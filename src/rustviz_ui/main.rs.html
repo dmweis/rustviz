@@ -195,6 +195,13 @@
 <span id="195">195</span>
 <span id="196">196</span>
 <span id="197">197</span>
+<span id="198">198</span>
+<span id="199">199</span>
+<span id="200">200</span>
+<span id="201">201</span>
+<span id="202">202</span>
+<span id="203">203</span>
+<span id="204">204</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">anyhow::Result</span>;
 <span class="kw">use</span> <span class="ident">clap::Clap</span>;
@@ -255,8 +262,12 @@
         <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">text_buffer</span> <span class="op">=</span> <span class="ident">String::new</span>();
         <span class="kw">for</span> (<span class="ident">id</span>, <span class="ident">object</span>) <span class="kw">in</span> <span class="kw-2">&amp;</span><span class="self">self</span>.<span class="ident">objects</span> {
             <span class="ident">text_buffer</span>.<span class="ident">push_str</span>(<span class="kw-2">&amp;</span><span class="macro">format!</span>(
-                <span class="string">&quot;{} [{:.2}, {:.2}, {:.2}]&quot;</span>,
-                <span class="ident">id</span>, <span class="ident">object</span>.<span class="ident">last_pose</span>.<span class="number">0</span>, <span class="ident">object</span>.<span class="ident">last_pose</span>.<span class="number">1</span>, <span class="ident">object</span>.<span class="ident">last_pose</span>.<span class="number">2</span>
+                <span class="string">&quot;{}: {} [{:.2} {:.2} {:.2}] \n&quot;</span>,
+                <span class="ident">id</span>,
+                <span class="ident">object</span>.<span class="ident">last_color</span>.<span class="ident">name</span>(),
+                <span class="ident">object</span>.<span class="ident">last_pose</span>.<span class="number">0</span>,
+                <span class="ident">object</span>.<span class="ident">last_pose</span>.<span class="number">1</span>,
+                <span class="ident">object</span>.<span class="ident">last_pose</span>.<span class="number">2</span>,
             ));
         }
         <span class="ident">text_buffer</span>
@@ -269,6 +280,7 @@
     <span class="ident">last_update</span>: <span class="ident">Instant</span>,
     <span class="ident">timeout</span>: <span class="ident">Duration</span>,
     <span class="ident">last_pose</span>: (<span class="ident">f32</span>, <span class="ident">f32</span>, <span class="ident">f32</span>),
+    <span class="ident">last_color</span>: <span class="ident">Color</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">VisualizerObject</span> {
@@ -280,6 +292,7 @@
             <span class="ident">last_update</span>: <span class="ident">Instant::now</span>(),
             <span class="ident">current_shape</span>: <span class="ident">object_info</span>.<span class="ident">shape</span>,
             <span class="ident">last_pose</span>: <span class="ident">object_info</span>.<span class="ident">pose</span>,
+            <span class="ident">last_color</span>: <span class="ident">object_info</span>.<span class="ident">color</span>,
         };
         <span class="ident">object</span>.<span class="ident">update_pose</span>(<span class="ident">object_info</span>.<span class="ident">pose</span>);
         <span class="ident">object</span>.<span class="ident">update_color</span>(<span class="ident">object_info</span>.<span class="ident">color</span>);
@@ -305,6 +318,7 @@
     }
 
     <span class="kw">fn</span> <span class="ident">update_color</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">color</span>: <span class="ident">Color</span>) {
+        <span class="self">self</span>.<span class="ident">last_color</span> <span class="op">=</span> <span class="ident">color</span>;
         <span class="kw">let</span> <span class="ident">color</span> <span class="op">=</span> <span class="ident">color</span>.<span class="ident">to_rgb</span>();
         <span class="self">self</span>.<span class="ident">node</span>.<span class="ident">set_color</span>(<span class="ident">color</span>.<span class="number">0</span>, <span class="ident">color</span>.<span class="number">1</span>, <span class="ident">color</span>.<span class="number">2</span>);
     }
