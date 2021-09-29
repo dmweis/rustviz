@@ -129,7 +129,13 @@ fn main() -> Result<()> {
     window.set_light(Light::StickToCamera);
     add_ground_plane(&mut window);
 
-    while window.render() {
+    let mut camera = kiss3d::camera::ArcBall::new(
+        na::Point3::new(1.0, 1.0, 1.0),
+        na::Point3::new(0.0, 0.0, 0.0),
+    );
+    camera.set_dist_step(10.0);
+
+    while !window.should_close() {
         while let Ok(update) = pose_subscriber.next() {
             for object_update in update.updates() {
                 object_container.update_object(object_update, &mut window);
@@ -139,6 +145,7 @@ fn main() -> Result<()> {
             }
         }
         object_container.remove_timed_out();
+        window.render_with_camera(&mut camera);
     }
     Ok(())
 }
