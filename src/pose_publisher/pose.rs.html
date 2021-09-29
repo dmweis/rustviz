@@ -100,6 +100,9 @@
 <span id="100">100</span>
 <span id="101">101</span>
 <span id="102">102</span>
+<span id="103">103</span>
+<span id="104">104</span>
+<span id="105">105</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 
@@ -119,8 +122,11 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">object</span>: <span class="ident">ObjectPose</span>) {
-        <span class="self">self</span>.<span class="ident">objects</span>.<span class="ident">push</span>(<span class="ident">object</span>);
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">add</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">pose</span>: (<span class="ident">f32</span>, <span class="ident">f32</span>, <span class="ident">f32</span>)) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">ObjectPose</span> {
+        <span class="kw">let</span> <span class="ident">pose</span> <span class="op">=</span> <span class="ident">ObjectPose::new</span>(<span class="ident">id</span>, <span class="ident">pose</span>);
+        <span class="self">self</span>.<span class="ident">objects</span>.<span class="ident">push</span>(<span class="ident">pose</span>);
+        <span class="kw">let</span> <span class="ident">index</span> <span class="op">=</span> <span class="self">self</span>.<span class="ident">objects</span>.<span class="ident">len</span>() <span class="op">-</span> <span class="number">1</span>;
+        <span class="self">self</span>.<span class="ident">objects</span>.<span class="ident">get_mut</span>(<span class="ident">index</span>).<span class="ident">unwrap</span>()
     }
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">delete</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>) {
@@ -150,7 +156,7 @@
 }
 
 <span class="kw">impl</span> <span class="ident">ObjectPose</span> {
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">pose</span>: (<span class="ident">f32</span>, <span class="ident">f32</span>, <span class="ident">f32</span>)) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">id</span>: <span class="kw-2">&amp;</span><span class="ident">str</span>, <span class="ident">pose</span>: (<span class="ident">f32</span>, <span class="ident">f32</span>, <span class="ident">f32</span>)) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
         <span class="ident">ObjectPose</span> {
             <span class="ident">id</span>: <span class="ident">id</span>.<span class="ident">to_owned</span>(),
             <span class="ident">pose</span>,
@@ -160,17 +166,17 @@
         }
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_timeout</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">timeout</span>: <span class="ident">f32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_timeout</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">timeout</span>: <span class="ident">f32</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">timeout</span> <span class="op">=</span> <span class="ident">timeout</span>;
         <span class="self">self</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_color</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">color</span>: <span class="ident">Color</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_color</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">color</span>: <span class="ident">Color</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">color</span> <span class="op">=</span> <span class="ident">color</span>;
         <span class="self">self</span>
     }
 
-    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_shape</span>(<span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">shape</span>: <span class="ident">Shape</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="self">Self</span> {
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_shape</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">shape</span>: <span class="ident">Shape</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">shape</span> <span class="op">=</span> <span class="ident">shape</span>;
         <span class="self">self</span>
     }

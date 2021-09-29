@@ -38,10 +38,13 @@
 <span id="38">38</span>
 <span id="39">39</span>
 <span id="40">40</span>
+<span id="41">41</span>
+<span id="42">42</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">clap::Clap</span>;
 <span class="kw">use</span> <span class="ident">pose_publisher</span>::{
-    <span class="ident">pose::Shape</span>, <span class="ident">ObjectPose</span>, <span class="ident">PoseClientUpdate</span>, <span class="ident">PosePublisher</span>, <span class="ident">PosePublisherError</span>,
+    <span class="ident">pose</span>::{<span class="ident">Color</span>, <span class="ident">Shape</span>},
+    <span class="ident">PoseClientUpdate</span>, <span class="ident">PosePublisher</span>, <span class="ident">PosePublisherError</span>,
 };
 <span class="kw">use</span> <span class="ident">std::net::SocketAddrV4</span>;
 
@@ -60,17 +63,18 @@
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> (<span class="number">0</span>..<span class="op">=</span><span class="number">100</span>).<span class="ident">rev</span>() {
             <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">f32</span>;
             <span class="ident">std::thread::sleep</span>(<span class="ident">std::time::Duration::from_secs_f32</span>(<span class="number">0.02</span>));
-            <span class="kw">let</span> <span class="ident">obj_a</span> <span class="op">=</span> <span class="ident">ObjectPose::new</span>(<span class="string">&quot;hi&quot;</span>, (<span class="number">0.</span>, <span class="number">0.</span>, <span class="number">0.01</span> <span class="op">*</span> <span class="ident">i</span>)).<span class="ident">with_shape</span>(<span class="ident">Shape::Sphere</span>(<span class="number">0.4</span>));
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">update</span> <span class="op">=</span> <span class="ident">PoseClientUpdate::new</span>(<span class="string">&quot;test publisher&quot;</span>);
-            <span class="ident">update</span>.<span class="ident">add</span>(<span class="ident">obj_a</span>);
+            <span class="ident">update</span>
+                .<span class="ident">add</span>(<span class="string">&quot;hi&quot;</span>, (<span class="number">0.</span>, <span class="number">0.</span>, <span class="number">0.01</span> <span class="op">*</span> <span class="ident">i</span>))
+                .<span class="ident">with_shape</span>(<span class="ident">Shape::Sphere</span>(<span class="number">0.4</span>));
+
             <span class="ident">pose_publisher</span>.<span class="ident">publish</span>(<span class="ident">update</span>)<span class="question-mark">?</span>;
         }
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> <span class="number">0</span>..<span class="op">=</span><span class="number">100</span> {
             <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">f32</span>;
             <span class="ident">std::thread::sleep</span>(<span class="ident">std::time::Duration::from_secs_f32</span>(<span class="number">0.02</span>));
-            <span class="kw">let</span> <span class="ident">obj_a</span> <span class="op">=</span> <span class="ident">ObjectPose::new</span>(<span class="string">&quot;hi&quot;</span>, (<span class="number">0.</span>, <span class="number">0.</span>, <span class="number">0.01</span> <span class="op">*</span> <span class="ident">i</span>));
             <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">update</span> <span class="op">=</span> <span class="ident">PoseClientUpdate::new</span>(<span class="string">&quot;test publisher&quot;</span>);
-            <span class="ident">update</span>.<span class="ident">add</span>(<span class="ident">obj_a</span>);
+            <span class="ident">update</span>.<span class="ident">add</span>(<span class="string">&quot;hi&quot;</span>, (<span class="number">0.</span>, <span class="number">0.</span>, <span class="number">0.01</span> <span class="op">*</span> <span class="ident">i</span>)).<span class="ident">with_color</span>(<span class="ident">Color::Cyan</span>);
             <span class="ident">pose_publisher</span>.<span class="ident">publish</span>(<span class="ident">update</span>)<span class="question-mark">?</span>;
         }
     }
