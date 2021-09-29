@@ -19,6 +19,7 @@ fn convert_coordinate_system(position: (f32, f32, f32)) -> na::Vector3<f32> {
 fn attach_node_type(shape: Shape, window: &mut Window) -> SceneNode {
     match shape {
         Shape::Sphere(radius) => window.add_sphere(radius),
+        Shape::Cube(x, y, z) => window.add_cube(y, z, x),
     }
 }
 

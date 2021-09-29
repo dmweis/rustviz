@@ -79,6 +79,7 @@ impl ObjectPose {
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]
 pub enum Shape {
     Sphere(f32),
+    Cube(f32, f32, f32),
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Copy, PartialEq)]

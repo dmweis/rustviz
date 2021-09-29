@@ -31,7 +31,10 @@ fn main() -> Result<(), PosePublisherError> {
             let i = i as f32;
             std::thread::sleep(std::time::Duration::from_secs_f32(0.02));
             let mut update = PoseClientUpdate::new("test publisher");
-            update.add("hi", (0., 0., 0.01 * i)).with_color(Color::Cyan);
+            update
+                .add("hi", (0., 0., 0.01 * i))
+                .with_color(Color::Cyan)
+                .with_shape(Shape::Cube(0.3, 0.01, 0.01));
             pose_publisher.publish(update)?;
         }
     }
