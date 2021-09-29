@@ -52,6 +52,17 @@ impl ObjectContainer {
     fn remove_timed_out(&mut self) {
         self.objects.retain(|_, node| !node.is_timed_out());
     }
+
+    fn display_message(&self) -> String {
+        let mut text_buffer = String::new();
+        for (id, object) in &self.objects {
+            text_buffer.push_str(&format!(
+                "{} [{:.2}, {:.2}, {:.2}]",
+                id, object.last_pose.0, object.last_pose.1, object.last_pose.2
+            ));
+        }
+        text_buffer
+    }
 }
 
 struct VisualizerObject {
@@ -59,6 +70,7 @@ struct VisualizerObject {
     current_shape: Shape,
     last_update: Instant,
     timeout: Duration,
+    last_pose: (f32, f32, f32),
 }
 
 impl VisualizerObject {
@@ -69,6 +81,7 @@ impl VisualizerObject {
             timeout: Duration::from_secs_f32(object_info.timeout),
             last_update: Instant::now(),
             current_shape: object_info.shape,
+            last_pose: object_info.pose,
         };
         object.update_pose(object_info.pose);
         object.update_color(object_info.color);
@@ -88,6 +101,7 @@ impl VisualizerObject {
     }
 
     fn update_pose(&mut self, pose: (f32, f32, f32)) {
+        self.last_pose = pose;
         self.node
             .set_local_translation(na::Translation3::from(convert_coordinate_system(pose)));
     }
@@ -145,8 +159,16 @@ fn main() -> Result<()> {
             }
         }
         object_container.remove_timed_out();
+        window.draw_text(
+            &object_container.display_message(),
+            &na::Point2::new(1.0, 1.0),
+            50.0,
+            &kiss3d::text::Font::default(),
+            &na::Point3::new(1.0, 1.0, 1.0),
+        );
         window.render_with_camera(&mut camera);
     }
+    window.close();
     Ok(())
 }
 
