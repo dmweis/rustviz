@@ -181,7 +181,7 @@ fn main() -> Result<()> {
         na::Point3::new(1.0, 1.0, 1.0),
         na::Point3::new(0.0, 0.0, 0.0),
     );
-    camera.set_dist_step(10.0);
+    camera.set_dist_step(4.0);
 
     while !window.should_close() {
         while let Ok(update) = pose_subscriber.next() {
