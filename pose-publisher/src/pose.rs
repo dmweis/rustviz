@@ -2,15 +2,13 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Default, Debug)]
 pub struct PoseClientUpdate {
-    client_id: String,
     objects: Vec<ObjectPose>,
     delete: Vec<String>,
 }
 
 impl PoseClientUpdate {
-    pub fn new(client_id: &str) -> Self {
+    pub fn new() -> Self {
         PoseClientUpdate {
-            client_id: client_id.to_owned(),
             objects: vec![],
             delete: vec![],
         }

@@ -20,7 +20,7 @@ fn main() -> Result<(), PosePublisherError> {
         for i in (0..=100).rev() {
             let i = i as f32;
             std::thread::sleep(std::time::Duration::from_secs_f32(0.02));
-            let mut update = PoseClientUpdate::new("test publisher");
+            let mut update = PoseClientUpdate::new();
             update
                 .add("hi", (0., 0., 0.01 * i))
                 .with_shape(Shape::Sphere(0.4));
@@ -30,7 +30,7 @@ fn main() -> Result<(), PosePublisherError> {
         for i in 0..=100 {
             let i = i as f32;
             std::thread::sleep(std::time::Duration::from_secs_f32(0.02));
-            let mut update = PoseClientUpdate::new("test publisher");
+            let mut update = PoseClientUpdate::new();
             update
                 .add("hi", (0., 0., 0.01 * i))
                 .with_color(Color::Cyan)
@@ -38,7 +38,7 @@ fn main() -> Result<(), PosePublisherError> {
             pose_publisher.publish(update)?;
         }
     }
-    let mut update = PoseClientUpdate::new("test publisher");
+    let mut update = PoseClientUpdate::new();
     update.delete("hi");
     pose_publisher.publish(update)?;
     Ok(())
