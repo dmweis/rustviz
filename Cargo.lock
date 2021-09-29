@@ -990,7 +990,6 @@ dependencies = [
  "num-complex",
  "num-rational",
  "num-traits",
- "serde",
  "simba",
  "typenum",
 ]
@@ -1112,7 +1111,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "747d632c0c558b87dbabbe6a82f3b4ae03720d0646ac5b7b4dae89394be5f2c5"
 dependencies = [
  "num-traits",
- "serde",
 ]
 
 [[package]]
@@ -1306,7 +1304,6 @@ name = "pose-publisher"
 version = "0.1.0"
 dependencies = [
  "clap",
- "nalgebra",
  "serde",
  "serde_json",
  "socket2",

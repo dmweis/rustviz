@@ -2,20 +2,23 @@ use anyhow::Result;
 use clap::Clap;
 use kiss3d::{light::Light, scene::SceneNode, window::Window};
 use nalgebra as na;
-use pose_publisher::{pose::Shape, ObjectPose, PoseSubscriber};
+use pose_publisher::{
+    pose::{Color, Shape},
+    ObjectPose, PoseSubscriber,
+};
 use std::{
     collections::HashMap,
     net::SocketAddrV4,
     time::{Duration, Instant},
 };
 
-fn convert_coordinate_system(position: na::Vector3<f32>) -> na::Vector3<f32> {
-    na::Vector3::new(position.y, position.z, position.x)
+fn convert_coordinate_system(position: (f32, f32, f32)) -> na::Vector3<f32> {
+    na::Vector3::new(position.1, position.2, position.0)
 }
 
 fn attach_node_type(shape: Shape, window: &mut Window) -> SceneNode {
     match shape {
-        Shape::Sphere => window.add_sphere(0.01),
+        Shape::Sphere(radius) => window.add_sphere(radius),
     }
 }
 
@@ -77,20 +80,20 @@ impl VisualizerObject {
         self.update_color(update.color);
         self.timeout = Duration::from_secs_f32(update.timeout);
         if self.current_shape != update.shape {
+            self.current_shape = update.shape;
             self.node.unlink();
             self.node = attach_node_type(update.shape, window);
         }
     }
 
-    fn update_pose(&mut self, pose: na::Point3<f32>) {
+    fn update_pose(&mut self, pose: (f32, f32, f32)) {
         self.node
-            .set_local_translation(na::Translation3::from(convert_coordinate_system(
-                pose.coords,
-            )));
+            .set_local_translation(na::Translation3::from(convert_coordinate_system(pose)));
     }
 
-    fn update_color(&mut self, color: na::Vector3<f32>) {
-        self.node.set_color(color.x, color.y, color.z);
+    fn update_color(&mut self, color: Color) {
+        let color = color.to_rgb();
+        self.node.set_color(color.0, color.1, color.2);
     }
 
     fn touch(&mut self) {
