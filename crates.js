@@ -1,0 +1,1 @@
+window.ALL_CRATES = ["example_publisher","example_subscriber","pose_publisher","rustviz_ui"];
