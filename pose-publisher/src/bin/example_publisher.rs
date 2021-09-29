@@ -1,6 +1,7 @@
 use clap::Clap;
 use pose_publisher::{
-    pose::Shape, ObjectPose, PoseClientUpdate, PosePublisher, PosePublisherError,
+    pose::{Color, Shape},
+    PoseClientUpdate, PosePublisher, PosePublisherError,
 };
 use std::net::SocketAddrV4;
 
@@ -19,17 +20,18 @@ fn main() -> Result<(), PosePublisherError> {
         for i in (0..=100).rev() {
             let i = i as f32;
             std::thread::sleep(std::time::Duration::from_secs_f32(0.02));
-            let obj_a = ObjectPose::new("hi", (0., 0., 0.01 * i)).with_shape(Shape::Sphere(0.4));
             let mut update = PoseClientUpdate::new("test publisher");
-            update.add(obj_a);
+            update
+                .add("hi", (0., 0., 0.01 * i))
+                .with_shape(Shape::Sphere(0.4));
+
             pose_publisher.publish(update)?;
         }
         for i in 0..=100 {
             let i = i as f32;
             std::thread::sleep(std::time::Duration::from_secs_f32(0.02));
-            let obj_a = ObjectPose::new("hi", (0., 0., 0.01 * i));
             let mut update = PoseClientUpdate::new("test publisher");
-            update.add(obj_a);
+            update.add("hi", (0., 0., 0.01 * i)).with_color(Color::Cyan);
             pose_publisher.publish(update)?;
         }
     }

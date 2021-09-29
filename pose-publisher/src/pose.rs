@@ -16,8 +16,11 @@ impl PoseClientUpdate {
         }
     }
 
-    pub fn add(&mut self, object: ObjectPose) {
-        self.objects.push(object);
+    pub fn add(&mut self, id: &str, pose: (f32, f32, f32)) -> &mut ObjectPose {
+        let pose = ObjectPose::new(id, pose);
+        self.objects.push(pose);
+        let index = self.objects.len() - 1;
+        self.objects.get_mut(index).unwrap()
     }
 
     pub fn delete(&mut self, id: &str) {
@@ -47,7 +50,7 @@ pub struct ObjectPose {
 }
 
 impl ObjectPose {
-    pub fn new(id: &str, pose: (f32, f32, f32)) -> Self {
+    fn new(id: &str, pose: (f32, f32, f32)) -> Self {
         ObjectPose {
             id: id.to_owned(),
             pose,
@@ -57,17 +60,17 @@ impl ObjectPose {
         }
     }
 
-    pub fn with_timeout(mut self, timeout: f32) -> Self {
+    pub fn with_timeout(&mut self, timeout: f32) -> &mut Self {
         self.timeout = timeout;
         self
     }
 
-    pub fn with_color(mut self, color: Color) -> Self {
+    pub fn with_color(&mut self, color: Color) -> &mut Self {
         self.color = color;
         self
     }
 
-    pub fn with_shape(mut self, shape: Shape) -> Self {
+    pub fn with_shape(&mut self, shape: Shape) -> &mut Self {
         self.shape = shape;
         self
     }
