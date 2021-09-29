@@ -16,10 +16,11 @@ fn convert_coordinate_system(position: (f32, f32, f32)) -> na::Vector3<f32> {
     na::Vector3::new(position.1, position.2, position.0)
 }
 
-fn attach_node_type(shape: Shape, window: &mut Window) -> SceneNode {
+fn attach_node_type(shape: Shape, window: &mut Window) -> Option<SceneNode> {
     match shape {
-        Shape::Sphere(radius) => window.add_sphere(radius),
-        Shape::Cube(x, y, z) => window.add_cube(y, z, x),
+        Shape::Sphere(radius) => Some(window.add_sphere(radius)),
+        Shape::Cube(x, y, z) => Some(window.add_cube(y, z, x)),
+        Shape::Line(_) => None,
     }
 }
 
@@ -45,7 +46,9 @@ impl ObjectContainer {
 
     fn delete_object(&mut self, id: &str) {
         if let Some(mut object) = self.objects.remove(id) {
-            object.node.unlink();
+            if let Some(scene_node) = &mut object.node {
+                scene_node.unlink();
+            }
         }
     }
 
@@ -67,10 +70,23 @@ impl ObjectContainer {
         }
         text_buffer
     }
+
+    fn draw_lines(&self, window: &mut Window) {
+        for object in self.objects.values() {
+            if let Shape::Line(end) = object.current_shape {
+                let rgb = object.last_color.to_rgb();
+                window.draw_line(
+                    &convert_coordinate_system(object.last_pose).into(),
+                    &convert_coordinate_system(end).into(),
+                    &na::Point3::new(rgb.0, rgb.1, rgb.2),
+                );
+            }
+        }
+    }
 }
 
 struct VisualizerObject {
-    node: SceneNode,
+    node: Option<SceneNode>,
     current_shape: Shape,
     last_update: Instant,
     timeout: Duration,
@@ -99,23 +115,32 @@ impl VisualizerObject {
         self.update_pose(update.pose);
         self.update_color(update.color);
         self.timeout = Duration::from_secs_f32(update.timeout);
-        if self.current_shape != update.shape {
-            self.current_shape = update.shape;
-            self.node.unlink();
-            self.node = attach_node_type(update.shape, window);
-        }
+        self.update_shape(update.shape, window)
     }
 
     fn update_pose(&mut self, pose: (f32, f32, f32)) {
         self.last_pose = pose;
-        self.node
-            .set_local_translation(na::Translation3::from(convert_coordinate_system(pose)));
+        if let Some(node) = &mut self.node {
+            node.set_local_translation(na::Translation3::from(convert_coordinate_system(pose)));
+        }
     }
 
     fn update_color(&mut self, color: Color) {
         self.last_color = color;
         let color = color.to_rgb();
-        self.node.set_color(color.0, color.1, color.2);
+        if let Some(node) = &mut self.node {
+            node.set_color(color.0, color.1, color.2);
+        }
+    }
+
+    fn update_shape(&mut self, shape: Shape, window: &mut Window) {
+        if self.current_shape != shape {
+            self.current_shape = shape;
+            if let Some(scene_node) = &mut self.node {
+                scene_node.unlink()
+            }
+            self.node = attach_node_type(shape, window);
+        }
     }
 
     fn touch(&mut self) {
@@ -129,7 +154,9 @@ impl VisualizerObject {
 
 impl Drop for VisualizerObject {
     fn drop(&mut self) {
-        self.node.unlink()
+        if let Some(scene_node) = &mut self.node {
+            scene_node.unlink()
+        }
     }
 }
 
@@ -166,6 +193,7 @@ fn main() -> Result<()> {
             }
         }
         object_container.remove_timed_out();
+        object_container.draw_lines(&mut window);
         window.draw_text(
             &object_container.display_message(),
             &na::Point2::new(1.0, 1.0),

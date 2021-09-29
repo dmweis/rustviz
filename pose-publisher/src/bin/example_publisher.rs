@@ -24,7 +24,9 @@ fn main() -> Result<(), PosePublisherError> {
             update
                 .add("obj_a", (0., 0., 0.01 * i))
                 .with_shape(Shape::Sphere(0.4));
-
+            update
+                .add("test line", (0., 0., 0.01 * i))
+                .with_shape(Shape::Line((0., 0., 0.)));
             pose_publisher.publish(update)?;
         }
         for i in 0..=100 {
@@ -35,6 +37,10 @@ fn main() -> Result<(), PosePublisherError> {
                 .add("obj_a", (0., 0., 0.01 * i))
                 .with_color(Color::Cyan)
                 .with_shape(Shape::Cube(0.3, 0.01, 0.01));
+            update
+                .add("test line", (0., 0., 0.01 * i))
+                .with_shape(Shape::Line((0., 0., 0.)))
+                .with_color(Color::Magenta);
             pose_publisher.publish(update)?;
         }
     }
