@@ -22,7 +22,7 @@ fn main() -> Result<(), PosePublisherError> {
             std::thread::sleep(std::time::Duration::from_secs_f32(0.02));
             let mut update = PoseClientUpdate::new();
             update
-                .add("hi", (0., 0., 0.01 * i))
+                .add("obj_a", (0., 0., 0.01 * i))
                 .with_shape(Shape::Sphere(0.4));
 
             pose_publisher.publish(update)?;
@@ -32,14 +32,14 @@ fn main() -> Result<(), PosePublisherError> {
             std::thread::sleep(std::time::Duration::from_secs_f32(0.02));
             let mut update = PoseClientUpdate::new();
             update
-                .add("hi", (0., 0., 0.01 * i))
+                .add("obj_a", (0., 0., 0.01 * i))
                 .with_color(Color::Cyan)
                 .with_shape(Shape::Cube(0.3, 0.01, 0.01));
             pose_publisher.publish(update)?;
         }
     }
     let mut update = PoseClientUpdate::new();
-    update.delete("hi");
+    update.delete("obj_a");
     pose_publisher.publish(update)?;
     Ok(())
 }
