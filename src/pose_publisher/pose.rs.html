@@ -113,6 +113,7 @@
 <span id="113">113</span>
 <span id="114">114</span>
 <span id="115">115</span>
+<span id="116">116</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 
@@ -194,6 +195,7 @@
 <span class="kw">pub</span> <span class="kw">enum</span> <span class="ident">Shape</span> {
     <span class="ident">Sphere</span>(<span class="ident">f32</span>),
     <span class="ident">Cube</span>(<span class="ident">f32</span>, <span class="ident">f32</span>, <span class="ident">f32</span>),
+    <span class="ident">Line</span>((<span class="ident">f32</span>, <span class="ident">f32</span>, <span class="ident">f32</span>)),
 }
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">Debug</span>, <span class="ident">Clone</span>, <span class="ident">Copy</span>, <span class="ident">PartialEq</span>)]</span>
