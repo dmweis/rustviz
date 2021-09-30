@@ -3,7 +3,7 @@ pub mod point_cloud;
 pub mod pose;
 
 use multicast::MulticastMessenger;
-use point_cloud::PointCloud2;
+pub use point_cloud::PointCloud2;
 pub use pose::{ObjectPose, PoseClientUpdate};
 use std::net::SocketAddrV4;
 use thiserror::Error;
