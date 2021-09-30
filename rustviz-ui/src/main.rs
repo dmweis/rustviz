@@ -3,8 +3,9 @@ use clap::Clap;
 use kiss3d::{light::Light, scene::SceneNode, window::Window};
 use nalgebra as na;
 use pose_publisher::{
+    point_cloud::PointCloud2,
     pose::{Color, Shape},
-    ObjectPose, PoseSubscriber,
+    ObjectPose, PointCloudSubscriber, PoseSubscriber,
 };
 use std::{
     collections::HashMap,
@@ -26,12 +27,14 @@ fn attach_node_type(shape: Shape, window: &mut Window) -> Option<SceneNode> {
 
 struct ObjectContainer {
     objects: HashMap<String, VisualizerObject>,
+    point_clouds: HashMap<String, PointCloudContainer>,
 }
 
 impl ObjectContainer {
     fn new() -> Self {
         Self {
             objects: HashMap::new(),
+            point_clouds: HashMap::new(),
         }
     }
 
@@ -52,8 +55,17 @@ impl ObjectContainer {
         }
     }
 
+    fn update_point_clouds(&mut self, point_cloud: PointCloud2) {
+        self.point_clouds.insert(
+            point_cloud.id().to_owned(),
+            PointCloudContainer::new(point_cloud),
+        );
+    }
+
     fn remove_timed_out(&mut self) {
         self.objects.retain(|_, node| !node.is_timed_out());
+        self.point_clouds
+            .retain(|_, point_cloud| !point_cloud.is_timed_out());
     }
 
     fn display_message(&self) -> String {
@@ -68,6 +80,19 @@ impl ObjectContainer {
                 object.last_pose.2,
             ));
         }
+        for (id, point_cloud) in &self.point_clouds {
+            let parent_frame_id = point_cloud
+                .point_cloud()
+                .parent_frame_id()
+                .clone()
+                .unwrap_or_else(|| "N/A".to_owned());
+            text_buffer.push_str(&format!(
+                "{}: {} len {} \n",
+                id,
+                parent_frame_id,
+                point_cloud.point_cloud().points().len()
+            ));
+        }
         text_buffer
     }
 
@@ -80,6 +105,26 @@ impl ObjectContainer {
                     &convert_coordinate_system(end).into(),
                     &na::Point3::new(rgb.0, rgb.1, rgb.2),
                 );
+            }
+        }
+    }
+
+    fn draw_point_clouds(&self, window: &mut Window) {
+        for point_cloud in self.point_clouds.values() {
+            let root = if let Some(parent_frame_id) = point_cloud.point_cloud().parent_frame_id() {
+                self.objects
+                    .get(parent_frame_id)
+                    .map(|node| node.last_pose)
+                    .unwrap_or_else(|| (0., 0., 0.01))
+            } else {
+                (0., 0., 0.01)
+            };
+            let rgb = point_cloud.point_cloud().color().to_rgb();
+            let color = na::Point3::new(rgb.0, rgb.1, rgb.2);
+            let root_point = convert_coordinate_system(root);
+            for point in point_cloud.point_cloud().points() {
+                let point3 = convert_coordinate_system((point.0, point.1, 0.0)) + root_point;
+                window.draw_point(&point3.into(), &color);
             }
         }
     }
@@ -160,16 +205,41 @@ impl Drop for VisualizerObject {
     }
 }
 
+struct PointCloudContainer {
+    point_cloud: PointCloud2,
+    last_touched: Instant,
+}
+
+impl PointCloudContainer {
+    fn new(point_cloud: PointCloud2) -> Self {
+        Self {
+            point_cloud,
+            last_touched: Instant::now(),
+        }
+    }
+
+    fn point_cloud(&self) -> &PointCloud2 {
+        &self.point_cloud
+    }
+
+    fn is_timed_out(&self) -> bool {
+        self.last_touched.elapsed() > Duration::from_secs_f32(self.point_cloud.timeout())
+    }
+}
+
 #[derive(Clap)]
 #[clap()]
 struct Args {
     #[clap(short, long, default_value = "239.0.0.22:7072")]
     address: SocketAddrV4,
+    #[clap(short, long, default_value = "239.0.0.22:7075")]
+    point_cloud_address: SocketAddrV4,
 }
 
 fn main() -> Result<()> {
     let args = Args::parse();
     let pose_subscriber = PoseSubscriber::new(args.address).unwrap();
+    let point_cloud_subscriber = PointCloudSubscriber::new(args.point_cloud_address).unwrap();
     let mut object_container = ObjectContainer::new();
     let mut window = Window::new("rustviz");
 
@@ -192,8 +262,12 @@ fn main() -> Result<()> {
                 object_container.delete_object(delete_id);
             }
         }
+        while let Ok(point_cloud_update) = point_cloud_subscriber.next() {
+            object_container.update_point_clouds(point_cloud_update);
+        }
         object_container.remove_timed_out();
         object_container.draw_lines(&mut window);
+        object_container.draw_point_clouds(&mut window);
         window.draw_text(
             &object_container.display_message(),
             &na::Point2::new(1.0, 1.0),

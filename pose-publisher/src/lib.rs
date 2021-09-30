@@ -1,7 +1,9 @@
 mod multicast;
+pub mod point_cloud;
 pub mod pose;
 
 use multicast::MulticastMessenger;
+use point_cloud::PointCloud2;
 pub use pose::{ObjectPose, PoseClientUpdate};
 use std::net::SocketAddrV4;
 use thiserror::Error;
@@ -47,6 +49,37 @@ impl PoseSubscriber {
     }
 
     pub fn next(&self) -> Result<PoseClientUpdate> {
+        self.messenger.receive()
+    }
+}
+
+pub struct PointCloudPublisher {
+    messenger: MulticastMessenger,
+}
+
+impl PointCloudPublisher {
+    pub fn new(multicast_address: SocketAddrV4) -> Result<Self> {
+        let messenger = MulticastMessenger::new(multicast_address)?;
+        Ok(Self { messenger })
+    }
+
+    pub fn publish(&self, point_cloud: PointCloud2) -> Result<()> {
+        self.messenger.send(point_cloud)?;
+        Ok(())
+    }
+}
+
+pub struct PointCloudSubscriber {
+    messenger: MulticastMessenger,
+}
+
+impl PointCloudSubscriber {
+    pub fn new(multicast_address: SocketAddrV4) -> Result<Self> {
+        let messenger = MulticastMessenger::new(multicast_address)?;
+        Ok(Self { messenger })
+    }
+
+    pub fn next(&self) -> Result<PointCloud2> {
         self.messenger.receive()
     }
 }

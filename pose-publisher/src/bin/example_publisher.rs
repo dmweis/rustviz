@@ -16,7 +16,7 @@ fn main() -> Result<(), PosePublisherError> {
     let args = Args::parse();
 
     let pose_publisher = PosePublisher::new(args.address)?;
-    for _ in 0..2 {
+    for _ in 0..4 {
         for i in (0..=100).rev() {
             let i = i as f32;
             std::thread::sleep(std::time::Duration::from_secs_f32(0.02));
