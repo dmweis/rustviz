@@ -68,7 +68,7 @@
     <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <span class="ident">Args::parse</span>();
 
     <span class="kw">let</span> <span class="ident">pose_publisher</span> <span class="op">=</span> <span class="ident">PosePublisher::new</span>(<span class="ident">args</span>.<span class="ident">address</span>)<span class="question-mark">?</span>;
-    <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">2</span> {
+    <span class="kw">for</span> <span class="kw">_</span> <span class="kw">in</span> <span class="number">0</span>..<span class="number">4</span> {
         <span class="kw">for</span> <span class="ident">i</span> <span class="kw">in</span> (<span class="number">0</span>..<span class="op">=</span><span class="number">100</span>).<span class="ident">rev</span>() {
             <span class="kw">let</span> <span class="ident">i</span> <span class="op">=</span> <span class="ident">i</span> <span class="kw">as</span> <span class="ident">f32</span>;
             <span class="ident">std::thread::sleep</span>(<span class="ident">std::time::Duration::from_secs_f32</span>(<span class="number">0.02</span>));

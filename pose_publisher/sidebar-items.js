@@ -1,1 +1,1 @@
-initSidebarItems({"enum":[["PosePublisherError",""]],"mod":[["pose",""]],"struct":[["PosePublisher",""],["PoseSubscriber",""]]});
+initSidebarItems({"enum":[["PosePublisherError",""]],"mod":[["point_cloud",""],["pose",""]],"struct":[["PointCloudPublisher",""],["PointCloudSubscriber",""],["PosePublisher",""],["PoseSubscriber",""]]});
