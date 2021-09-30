@@ -304,6 +304,27 @@
 <span id="304">304</span>
 <span id="305">305</span>
 <span id="306">306</span>
+<span id="307">307</span>
+<span id="308">308</span>
+<span id="309">309</span>
+<span id="310">310</span>
+<span id="311">311</span>
+<span id="312">312</span>
+<span id="313">313</span>
+<span id="314">314</span>
+<span id="315">315</span>
+<span id="316">316</span>
+<span id="317">317</span>
+<span id="318">318</span>
+<span id="319">319</span>
+<span id="320">320</span>
+<span id="321">321</span>
+<span id="322">322</span>
+<span id="323">323</span>
+<span id="324">324</span>
+<span id="325">325</span>
+<span id="326">326</span>
+<span id="327">327</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">anyhow::Result</span>;
 <span class="kw">use</span> <span class="ident">clap::Clap</span>;
@@ -322,6 +343,12 @@
 
 <span class="kw">fn</span> <span class="ident">convert_coordinate_system</span>(<span class="ident">position</span>: (<span class="ident">f32</span>, <span class="ident">f32</span>, <span class="ident">f32</span>)) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">na::Vector3</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span> {
     <span class="ident">na::Vector3::new</span>(<span class="ident">position</span>.<span class="number">1</span>, <span class="ident">position</span>.<span class="number">2</span>, <span class="ident">position</span>.<span class="number">0</span>)
+}
+
+<span class="kw">fn</span> <span class="ident">convert_rotation_coordinate_system</span>(<span class="ident">rotation</span>: (<span class="ident">f32</span>, <span class="ident">f32</span>, <span class="ident">f32</span>, <span class="ident">f32</span>)) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">na::UnitQuaternion</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span> {
+    <span class="ident">na::UnitQuaternion::new_normalize</span>(<span class="ident">na::Quaternion::new</span>(
+        <span class="ident">rotation</span>.<span class="number">3</span>, <span class="ident">rotation</span>.<span class="number">1</span>, <span class="ident">rotation</span>.<span class="number">2</span>, <span class="ident">rotation</span>.<span class="number">0</span>,
+    ))
 }
 
 <span class="kw">fn</span> <span class="ident">attach_node_type</span>(<span class="ident">shape</span>: <span class="ident">Shape</span>, <span class="ident">window</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Window</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">SceneNode</span><span class="op">&gt;</span> {
@@ -418,20 +445,25 @@
 
     <span class="kw">fn</span> <span class="ident">draw_point_clouds</span>(<span class="kw-2">&amp;</span><span class="self">self</span>, <span class="ident">window</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Window</span>) {
         <span class="kw">for</span> <span class="ident">point_cloud</span> <span class="kw">in</span> <span class="self">self</span>.<span class="ident">point_clouds</span>.<span class="ident">values</span>() {
-            <span class="kw">let</span> <span class="ident">root</span> <span class="op">=</span> <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">parent_frame_id</span>) <span class="op">=</span> <span class="ident">point_cloud</span>.<span class="ident">point_cloud</span>().<span class="ident">parent_frame_id</span>() {
-                <span class="self">self</span>.<span class="ident">objects</span>
-                    .<span class="ident">get</span>(<span class="ident">parent_frame_id</span>)
-                    .<span class="ident">map</span>(<span class="op">|</span><span class="ident">node</span><span class="op">|</span> <span class="ident">node</span>.<span class="ident">last_pose</span>)
-                    .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> (<span class="number">0.</span>, <span class="number">0.</span>, <span class="number">0.01</span>))
-            } <span class="kw">else</span> {
-                (<span class="number">0.</span>, <span class="number">0.</span>, <span class="number">0.01</span>)
-            };
+            <span class="kw">let</span> (<span class="ident">root_point</span>, <span class="ident">root_rotation</span>) <span class="op">=</span>
+                <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">parent_frame_id</span>) <span class="op">=</span> <span class="ident">point_cloud</span>.<span class="ident">point_cloud</span>().<span class="ident">parent_frame_id</span>() {
+                    <span class="self">self</span>.<span class="ident">objects</span>
+                        .<span class="ident">get</span>(<span class="ident">parent_frame_id</span>)
+                        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">node</span><span class="op">|</span> (<span class="ident">node</span>.<span class="ident">last_pose</span>, <span class="ident">node</span>.<span class="ident">last_rotation</span>))
+                        .<span class="ident">unwrap_or_else</span>(<span class="op">|</span><span class="op">|</span> ((<span class="number">0.</span>, <span class="number">0.</span>, <span class="number">0.01</span>), (<span class="number">0.</span>, <span class="number">0.</span>, <span class="number">0.</span>, <span class="number">1.</span>)))
+                } <span class="kw">else</span> {
+                    ((<span class="number">0.</span>, <span class="number">0.</span>, <span class="number">0.01</span>), (<span class="number">0.</span>, <span class="number">0.</span>, <span class="number">0.</span>, <span class="number">1.</span>))
+                };
             <span class="kw">let</span> <span class="ident">rgb</span> <span class="op">=</span> <span class="ident">point_cloud</span>.<span class="ident">point_cloud</span>().<span class="ident">color</span>().<span class="ident">to_rgb</span>();
             <span class="kw">let</span> <span class="ident">color</span> <span class="op">=</span> <span class="ident">na::Point3::new</span>(<span class="ident">rgb</span>.<span class="number">0</span>, <span class="ident">rgb</span>.<span class="number">1</span>, <span class="ident">rgb</span>.<span class="number">2</span>);
-            <span class="kw">let</span> <span class="ident">root_point</span> <span class="op">=</span> <span class="ident">convert_coordinate_system</span>(<span class="ident">root</span>);
+            <span class="kw">let</span> <span class="ident">root_translation</span> <span class="op">=</span> <span class="ident">na::Isometry3::from_parts</span>(
+                <span class="ident">na::Translation3::from</span>(<span class="ident">convert_coordinate_system</span>(<span class="ident">root_point</span>)),
+                <span class="ident">convert_rotation_coordinate_system</span>(<span class="ident">root_rotation</span>),
+            );
             <span class="kw">for</span> <span class="ident">point</span> <span class="kw">in</span> <span class="ident">point_cloud</span>.<span class="ident">point_cloud</span>().<span class="ident">points</span>() {
-                <span class="kw">let</span> <span class="ident">point3</span> <span class="op">=</span> <span class="ident">convert_coordinate_system</span>((<span class="ident">point</span>.<span class="number">0</span>, <span class="ident">point</span>.<span class="number">1</span>, <span class="number">0.0</span>)) <span class="op">+</span> <span class="ident">root_point</span>;
-                <span class="ident">window</span>.<span class="ident">draw_point</span>(<span class="kw-2">&amp;</span><span class="ident">point3</span>.<span class="ident">into</span>(), <span class="kw-2">&amp;</span><span class="ident">color</span>);
+                <span class="kw">let</span> <span class="ident">point3</span> <span class="op">=</span> <span class="ident">root_translation</span>
+                    <span class="op">*</span> <span class="ident">na::Point3::from</span>(<span class="ident">convert_coordinate_system</span>((<span class="ident">point</span>.<span class="number">0</span>, <span class="ident">point</span>.<span class="number">1</span>, <span class="number">0.0</span>)));
+                <span class="ident">window</span>.<span class="ident">draw_point</span>(<span class="kw-2">&amp;</span><span class="ident">point3</span>, <span class="kw-2">&amp;</span><span class="ident">color</span>);
             }
         }
     }
@@ -443,6 +475,7 @@
     <span class="ident">last_update</span>: <span class="ident">Instant</span>,
     <span class="ident">timeout</span>: <span class="ident">Duration</span>,
     <span class="ident">last_pose</span>: (<span class="ident">f32</span>, <span class="ident">f32</span>, <span class="ident">f32</span>),
+    <span class="ident">last_rotation</span>: (<span class="ident">f32</span>, <span class="ident">f32</span>, <span class="ident">f32</span>, <span class="ident">f32</span>),
     <span class="ident">last_color</span>: <span class="ident">Color</span>,
 }
 
@@ -455,6 +488,7 @@
             <span class="ident">last_update</span>: <span class="ident">Instant::now</span>(),
             <span class="ident">current_shape</span>: <span class="ident">object_info</span>.<span class="ident">shape</span>,
             <span class="ident">last_pose</span>: <span class="ident">object_info</span>.<span class="ident">pose</span>,
+            <span class="ident">last_rotation</span>: <span class="ident">object_info</span>.<span class="ident">rotation</span>,
             <span class="ident">last_color</span>: <span class="ident">object_info</span>.<span class="ident">color</span>,
         };
         <span class="ident">object</span>.<span class="ident">update_pose</span>(<span class="ident">object_info</span>.<span class="ident">pose</span>);
@@ -465,6 +499,7 @@
     <span class="kw">fn</span> <span class="ident">update</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">update</span>: <span class="kw-2">&amp;</span><span class="ident">ObjectPose</span>, <span class="ident">window</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Window</span>) {
         <span class="self">self</span>.<span class="ident">touch</span>();
         <span class="self">self</span>.<span class="ident">update_pose</span>(<span class="ident">update</span>.<span class="ident">pose</span>);
+        <span class="self">self</span>.<span class="ident">update_rotation</span>(<span class="ident">update</span>.<span class="ident">rotation</span>);
         <span class="self">self</span>.<span class="ident">update_color</span>(<span class="ident">update</span>.<span class="ident">color</span>);
         <span class="self">self</span>.<span class="ident">timeout</span> <span class="op">=</span> <span class="ident">Duration::from_secs_f32</span>(<span class="ident">update</span>.<span class="ident">timeout</span>);
         <span class="self">self</span>.<span class="ident">update_shape</span>(<span class="ident">update</span>.<span class="ident">shape</span>, <span class="ident">window</span>)
@@ -474,6 +509,13 @@
         <span class="self">self</span>.<span class="ident">last_pose</span> <span class="op">=</span> <span class="ident">pose</span>;
         <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">node</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">node</span> {
             <span class="ident">node</span>.<span class="ident">set_local_translation</span>(<span class="ident">na::Translation3::from</span>(<span class="ident">convert_coordinate_system</span>(<span class="ident">pose</span>)));
+        }
+    }
+
+    <span class="kw">fn</span> <span class="ident">update_rotation</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">rotation</span>: (<span class="ident">f32</span>, <span class="ident">f32</span>, <span class="ident">f32</span>, <span class="ident">f32</span>)) {
+        <span class="self">self</span>.<span class="ident">last_rotation</span> <span class="op">=</span> <span class="ident">rotation</span>;
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">node</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>.<span class="ident">node</span> {
+            <span class="ident">node</span>.<span class="ident">set_local_rotation</span>(<span class="ident">convert_rotation_coordinate_system</span>(<span class="ident">rotation</span>));
         }
     }
 

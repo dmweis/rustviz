@@ -114,6 +114,18 @@
 <span id="114">114</span>
 <span id="115">115</span>
 <span id="116">116</span>
+<span id="117">117</span>
+<span id="118">118</span>
+<span id="119">119</span>
+<span id="120">120</span>
+<span id="121">121</span>
+<span id="122">122</span>
+<span id="123">123</span>
+<span id="124">124</span>
+<span id="125">125</span>
+<span id="126">126</span>
+<span id="127">127</span>
+<span id="128">128</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">serde</span>::{<span class="ident">Deserialize</span>, <span class="ident">Serialize</span>};
 
@@ -151,9 +163,13 @@
     }
 }
 
+<span class="doccomment">/// in form (x, y, z, w)</span>
+<span class="kw">type</span> <span class="ident">Quaternion</span> <span class="op">=</span> (<span class="ident">f32</span>, <span class="ident">f32</span>, <span class="ident">f32</span>, <span class="ident">f32</span>);
+
 <span class="kw">const</span> <span class="ident">DEFAULT_TIMEOUT</span>: <span class="ident">f32</span> <span class="op">=</span> <span class="number">5.</span>;
 <span class="kw">const</span> <span class="ident">DEFAULT_RED_COLOR</span>: <span class="ident">Color</span> <span class="op">=</span> <span class="ident">Color::Red</span>;
 <span class="kw">const</span> <span class="ident">DEFAULT_SHAPE</span>: <span class="ident">Shape</span> <span class="op">=</span> <span class="ident">Shape::Sphere</span>(<span class="number">0.05</span>);
+<span class="kw">const</span> <span class="ident">IDENTITY_QUATERNION</span>: <span class="ident">Quaternion</span> <span class="op">=</span> (<span class="number">0.</span>, <span class="number">0.</span>, <span class="number">0.</span>, <span class="number">1.</span>);
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Serialize</span>, <span class="ident">Deserialize</span>, <span class="ident">Debug</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">ObjectPose</span> {
@@ -162,6 +178,7 @@
     <span class="kw">pub</span> <span class="ident">timeout</span>: <span class="ident">f32</span>,
     <span class="kw">pub</span> <span class="ident">shape</span>: <span class="ident">Shape</span>,
     <span class="kw">pub</span> <span class="ident">color</span>: <span class="ident">Color</span>,
+    <span class="kw">pub</span> <span class="ident">rotation</span>: <span class="ident">Quaternion</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">ObjectPose</span> {
@@ -172,6 +189,7 @@
             <span class="ident">timeout</span>: <span class="ident">DEFAULT_TIMEOUT</span>,
             <span class="ident">shape</span>: <span class="ident">DEFAULT_SHAPE</span>,
             <span class="ident">color</span>: <span class="ident">DEFAULT_RED_COLOR</span>,
+            <span class="ident">rotation</span>: <span class="ident">IDENTITY_QUATERNION</span>,
         }
     }
 
@@ -187,6 +205,12 @@
 
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_shape</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">shape</span>: <span class="ident">Shape</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
         <span class="self">self</span>.<span class="ident">shape</span> <span class="op">=</span> <span class="ident">shape</span>;
+        <span class="self">self</span>
+    }
+
+    <span class="doccomment">/// in form (x, y, z, w)</span>
+    <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">with_rotation</span>(<span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">self</span>, <span class="ident">rotation</span>: <span class="ident">Quaternion</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="self">Self</span> {
+        <span class="self">self</span>.<span class="ident">rotation</span> <span class="op">=</span> <span class="ident">rotation</span>;
         <span class="self">self</span>
     }
 }
