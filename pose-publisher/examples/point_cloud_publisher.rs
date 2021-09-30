@@ -26,7 +26,7 @@ fn main() -> Result<(), PosePublisherError> {
 
         let point_cloud = PointCloud2::from_points("example cloud", points)
             .with_color(Color::Cyan)
-            .with_parent_frame_id("obj_a");
+            .with_parent_frame_id("rotated_object");
         point_cloud_publisher.publish(point_cloud).unwrap();
     }
 }

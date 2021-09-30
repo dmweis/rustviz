@@ -17,6 +17,12 @@ fn convert_coordinate_system(position: (f32, f32, f32)) -> na::Vector3<f32> {
     na::Vector3::new(position.1, position.2, position.0)
 }
 
+fn convert_rotation_coordinate_system(rotation: (f32, f32, f32, f32)) -> na::UnitQuaternion<f32> {
+    na::UnitQuaternion::new_normalize(na::Quaternion::new(
+        rotation.3, rotation.1, rotation.2, rotation.0,
+    ))
+}
+
 fn attach_node_type(shape: Shape, window: &mut Window) -> Option<SceneNode> {
     match shape {
         Shape::Sphere(radius) => Some(window.add_sphere(radius)),
@@ -111,20 +117,25 @@ impl ObjectContainer {
 
     fn draw_point_clouds(&self, window: &mut Window) {
         for point_cloud in self.point_clouds.values() {
-            let root = if let Some(parent_frame_id) = point_cloud.point_cloud().parent_frame_id() {
-                self.objects
-                    .get(parent_frame_id)
-                    .map(|node| node.last_pose)
-                    .unwrap_or_else(|| (0., 0., 0.01))
-            } else {
-                (0., 0., 0.01)
-            };
+            let (root_point, root_rotation) =
+                if let Some(parent_frame_id) = point_cloud.point_cloud().parent_frame_id() {
+                    self.objects
+                        .get(parent_frame_id)
+                        .map(|node| (node.last_pose, node.last_rotation))
+                        .unwrap_or_else(|| ((0., 0., 0.01), (0., 0., 0., 1.)))
+                } else {
+                    ((0., 0., 0.01), (0., 0., 0., 1.))
+                };
             let rgb = point_cloud.point_cloud().color().to_rgb();
             let color = na::Point3::new(rgb.0, rgb.1, rgb.2);
-            let root_point = convert_coordinate_system(root);
+            let root_translation = na::Isometry3::from_parts(
+                na::Translation3::from(convert_coordinate_system(root_point)),
+                convert_rotation_coordinate_system(root_rotation),
+            );
             for point in point_cloud.point_cloud().points() {
-                let point3 = convert_coordinate_system((point.0, point.1, 0.0)) + root_point;
-                window.draw_point(&point3.into(), &color);
+                let point3 = root_translation
+                    * na::Point3::from(convert_coordinate_system((point.0, point.1, 0.0)));
+                window.draw_point(&point3, &color);
             }
         }
     }
@@ -136,6 +147,7 @@ struct VisualizerObject {
     last_update: Instant,
     timeout: Duration,
     last_pose: (f32, f32, f32),
+    last_rotation: (f32, f32, f32, f32),
     last_color: Color,
 }
 
@@ -148,6 +160,7 @@ impl VisualizerObject {
             last_update: Instant::now(),
             current_shape: object_info.shape,
             last_pose: object_info.pose,
+            last_rotation: object_info.rotation,
             last_color: object_info.color,
         };
         object.update_pose(object_info.pose);
@@ -158,6 +171,7 @@ impl VisualizerObject {
     fn update(&mut self, update: &ObjectPose, window: &mut Window) {
         self.touch();
         self.update_pose(update.pose);
+        self.update_rotation(update.rotation);
         self.update_color(update.color);
         self.timeout = Duration::from_secs_f32(update.timeout);
         self.update_shape(update.shape, window)
@@ -167,6 +181,13 @@ impl VisualizerObject {
         self.last_pose = pose;
         if let Some(node) = &mut self.node {
             node.set_local_translation(na::Translation3::from(convert_coordinate_system(pose)));
+        }
+    }
+
+    fn update_rotation(&mut self, rotation: (f32, f32, f32, f32)) {
+        self.last_rotation = rotation;
+        if let Some(node) = &mut self.node {
+            node.set_local_rotation(convert_rotation_coordinate_system(rotation));
         }
     }
 

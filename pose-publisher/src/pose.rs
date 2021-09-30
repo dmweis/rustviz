@@ -34,9 +34,13 @@ impl PoseClientUpdate {
     }
 }
 
+/// in form (x, y, z, w)
+type Quaternion = (f32, f32, f32, f32);
+
 const DEFAULT_TIMEOUT: f32 = 5.;
 const DEFAULT_RED_COLOR: Color = Color::Red;
 const DEFAULT_SHAPE: Shape = Shape::Sphere(0.05);
+const IDENTITY_QUATERNION: Quaternion = (0., 0., 0., 1.);
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct ObjectPose {
@@ -45,6 +49,7 @@ pub struct ObjectPose {
     pub timeout: f32,
     pub shape: Shape,
     pub color: Color,
+    pub rotation: Quaternion,
 }
 
 impl ObjectPose {
@@ -55,6 +60,7 @@ impl ObjectPose {
             timeout: DEFAULT_TIMEOUT,
             shape: DEFAULT_SHAPE,
             color: DEFAULT_RED_COLOR,
+            rotation: IDENTITY_QUATERNION,
         }
     }
 
@@ -70,6 +76,12 @@ impl ObjectPose {
 
     pub fn with_shape(&mut self, shape: Shape) -> &mut Self {
         self.shape = shape;
+        self
+    }
+
+    /// in form (x, y, z, w)
+    pub fn with_rotation(&mut self, rotation: Quaternion) -> &mut Self {
+        self.rotation = rotation;
         self
     }
 }
