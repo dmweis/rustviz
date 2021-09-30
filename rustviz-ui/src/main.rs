@@ -264,7 +264,7 @@ fn main() -> Result<()> {
     let mut object_container = ObjectContainer::new();
     let mut window = Window::new("rustviz");
 
-    window.set_background_color(0.5, 0.5, 0.5);
+    window.set_background_color(0.1, 0.1, 0.1);
     window.set_light(Light::StickToCamera);
     add_ground_plane(&mut window);
 
