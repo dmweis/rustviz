@@ -5,7 +5,7 @@ pub mod pose;
 use multicast::MulticastMessenger;
 pub use point_cloud::PointCloud2;
 pub use pose::{ObjectPose, PoseClientUpdate};
-use std::net::SocketAddrV4;
+use std::{net::SocketAddrV4, sync::Arc};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -22,13 +22,14 @@ pub enum PosePublisherError {
 
 type Result<T> = std::result::Result<T, PosePublisherError>;
 
+#[derive(Clone)]
 pub struct PosePublisher {
-    messenger: MulticastMessenger,
+    messenger: Arc<MulticastMessenger>,
 }
 
 impl PosePublisher {
     pub fn new(multicast_address: SocketAddrV4) -> Result<Self> {
-        let messenger = MulticastMessenger::new(multicast_address)?;
+        let messenger = Arc::new(MulticastMessenger::new(multicast_address)?);
         Ok(Self { messenger })
     }
 
