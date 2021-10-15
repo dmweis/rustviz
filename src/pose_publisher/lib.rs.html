@@ -83,6 +83,7 @@
 <span id="83">83</span>
 <span id="84">84</span>
 <span id="85">85</span>
+<span id="86">86</span>
 </pre><pre class="rust">
 <span class="kw">mod</span> <span class="ident">multicast</span>;
 <span class="kw">pub</span> <span class="kw">mod</span> <span class="ident">point_cloud</span>;
@@ -91,7 +92,7 @@
 <span class="kw">use</span> <span class="ident">multicast::MulticastMessenger</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">point_cloud::PointCloud2</span>;
 <span class="kw">pub</span> <span class="kw">use</span> <span class="ident">pose</span>::{<span class="ident">ObjectPose</span>, <span class="ident">PoseClientUpdate</span>};
-<span class="kw">use</span> <span class="ident">std::net::SocketAddrV4</span>;
+<span class="kw">use</span> <span class="ident">std</span>::{<span class="ident">net::SocketAddrV4</span>, <span class="ident">sync::Arc</span>};
 <span class="kw">use</span> <span class="ident">thiserror::Error</span>;
 
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Error</span>, <span class="ident">Debug</span>)]</span>
@@ -108,13 +109,14 @@
 
 <span class="kw">type</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="ident">T</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">std::result::Result</span><span class="op">&lt;</span><span class="ident">T</span>, <span class="ident">PosePublisherError</span><span class="op">&gt;</span>;
 
+<span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clone</span>)]</span>
 <span class="kw">pub</span> <span class="kw">struct</span> <span class="ident">PosePublisher</span> {
-    <span class="ident">messenger</span>: <span class="ident">MulticastMessenger</span>,
+    <span class="ident">messenger</span>: <span class="ident">Arc</span><span class="op">&lt;</span><span class="ident">MulticastMessenger</span><span class="op">&gt;</span>,
 }
 
 <span class="kw">impl</span> <span class="ident">PosePublisher</span> {
     <span class="kw">pub</span> <span class="kw">fn</span> <span class="ident">new</span>(<span class="ident">multicast_address</span>: <span class="ident">SocketAddrV4</span>) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span><span class="self">Self</span><span class="op">&gt;</span> {
-        <span class="kw">let</span> <span class="ident">messenger</span> <span class="op">=</span> <span class="ident">MulticastMessenger::new</span>(<span class="ident">multicast_address</span>)<span class="question-mark">?</span>;
+        <span class="kw">let</span> <span class="ident">messenger</span> <span class="op">=</span> <span class="ident">Arc::new</span>(<span class="ident">MulticastMessenger::new</span>(<span class="ident">multicast_address</span>)<span class="question-mark">?</span>);
         <span class="prelude-val">Ok</span>(<span class="self">Self</span> { <span class="ident">messenger</span> })
     }
 
