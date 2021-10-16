@@ -365,6 +365,88 @@
 <span id="365">365</span>
 <span id="366">366</span>
 <span id="367">367</span>
+<span id="368">368</span>
+<span id="369">369</span>
+<span id="370">370</span>
+<span id="371">371</span>
+<span id="372">372</span>
+<span id="373">373</span>
+<span id="374">374</span>
+<span id="375">375</span>
+<span id="376">376</span>
+<span id="377">377</span>
+<span id="378">378</span>
+<span id="379">379</span>
+<span id="380">380</span>
+<span id="381">381</span>
+<span id="382">382</span>
+<span id="383">383</span>
+<span id="384">384</span>
+<span id="385">385</span>
+<span id="386">386</span>
+<span id="387">387</span>
+<span id="388">388</span>
+<span id="389">389</span>
+<span id="390">390</span>
+<span id="391">391</span>
+<span id="392">392</span>
+<span id="393">393</span>
+<span id="394">394</span>
+<span id="395">395</span>
+<span id="396">396</span>
+<span id="397">397</span>
+<span id="398">398</span>
+<span id="399">399</span>
+<span id="400">400</span>
+<span id="401">401</span>
+<span id="402">402</span>
+<span id="403">403</span>
+<span id="404">404</span>
+<span id="405">405</span>
+<span id="406">406</span>
+<span id="407">407</span>
+<span id="408">408</span>
+<span id="409">409</span>
+<span id="410">410</span>
+<span id="411">411</span>
+<span id="412">412</span>
+<span id="413">413</span>
+<span id="414">414</span>
+<span id="415">415</span>
+<span id="416">416</span>
+<span id="417">417</span>
+<span id="418">418</span>
+<span id="419">419</span>
+<span id="420">420</span>
+<span id="421">421</span>
+<span id="422">422</span>
+<span id="423">423</span>
+<span id="424">424</span>
+<span id="425">425</span>
+<span id="426">426</span>
+<span id="427">427</span>
+<span id="428">428</span>
+<span id="429">429</span>
+<span id="430">430</span>
+<span id="431">431</span>
+<span id="432">432</span>
+<span id="433">433</span>
+<span id="434">434</span>
+<span id="435">435</span>
+<span id="436">436</span>
+<span id="437">437</span>
+<span id="438">438</span>
+<span id="439">439</span>
+<span id="440">440</span>
+<span id="441">441</span>
+<span id="442">442</span>
+<span id="443">443</span>
+<span id="444">444</span>
+<span id="445">445</span>
+<span id="446">446</span>
+<span id="447">447</span>
+<span id="448">448</span>
+<span id="449">449</span>
 </pre><pre class="rust">
 <span class="kw">use</span> <span class="ident">anyhow::Result</span>;
 <span class="kw">use</span> <span class="ident">clap::Clap</span>;
@@ -377,9 +459,10 @@
 };
 <span class="kw">use</span> <span class="ident">nalgebra</span> <span class="kw">as</span> <span class="ident">na</span>;
 <span class="kw">use</span> <span class="ident">pose_publisher</span>::{
+    <span class="ident">commands::Command</span>,
     <span class="ident">point_cloud::PointCloud2</span>,
     <span class="ident">pose</span>::{<span class="ident">Color</span>, <span class="ident">Shape</span>},
-    <span class="ident">ObjectPose</span>, <span class="ident">PointCloudSubscriber</span>, <span class="ident">PoseSubscriber</span>,
+    <span class="ident">CommandPublisher</span>, <span class="ident">ObjectPose</span>, <span class="ident">PointCloudSubscriber</span>, <span class="ident">PoseSubscriber</span>,
 };
 <span class="kw">use</span> <span class="ident">std</span>::{
     <span class="ident">collections::HashMap</span>,
@@ -389,6 +472,10 @@
 
 <span class="kw">fn</span> <span class="ident">convert_coordinate_system</span>((<span class="ident">x</span>, <span class="ident">y</span>, <span class="ident">z</span>): (<span class="ident">f32</span>, <span class="ident">f32</span>, <span class="ident">f32</span>)) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">na::Vector3</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span> {
     <span class="ident">na::Vector3::new</span>(<span class="ident">y</span>, <span class="ident">z</span>, <span class="ident">x</span>)
+}
+
+<span class="kw">fn</span> <span class="ident">inverse_convert_coordinate_system</span>(<span class="ident">vector</span>: <span class="kw-2">&amp;</span><span class="ident">na::Vector3</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>) <span class="op">-</span><span class="op">&gt;</span> (<span class="ident">f32</span>, <span class="ident">f32</span>, <span class="ident">f32</span>) {
+    (<span class="ident">vector</span>.<span class="ident">z</span>, <span class="ident">vector</span>.<span class="ident">x</span>, <span class="ident">vector</span>.<span class="ident">y</span>)
 }
 
 <span class="kw">fn</span> <span class="ident">convert_rotation_coordinate_system</span>(
@@ -625,16 +712,19 @@
 <span class="attribute">#[<span class="ident">derive</span>(<span class="ident">Clap</span>)]</span>
 <span class="attribute">#[<span class="ident">clap</span>()]</span>
 <span class="kw">struct</span> <span class="ident">Args</span> {
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">short</span>, <span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;239.0.0.22:7072&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;239.0.0.22:7072&quot;</span>)]</span>
     <span class="ident">address</span>: <span class="ident">SocketAddrV4</span>,
-    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">short</span>, <span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;239.0.0.22:7075&quot;</span>)]</span>
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;239.0.0.22:7075&quot;</span>)]</span>
     <span class="ident">point_cloud_address</span>: <span class="ident">SocketAddrV4</span>,
+    <span class="attribute">#[<span class="ident">clap</span>(<span class="ident">long</span>, <span class="ident">default_value</span> <span class="op">=</span> <span class="string">&quot;239.0.0.22:7076&quot;</span>)]</span>
+    <span class="ident">command_address</span>: <span class="ident">SocketAddrV4</span>,
 }
 
 <span class="kw">fn</span> <span class="ident">main</span>() <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">args</span> <span class="op">=</span> <span class="ident">Args::parse</span>();
     <span class="kw">let</span> <span class="ident">pose_subscriber</span> <span class="op">=</span> <span class="ident">PoseSubscriber::new</span>(<span class="ident">args</span>.<span class="ident">address</span>).<span class="ident">unwrap</span>();
     <span class="kw">let</span> <span class="ident">point_cloud_subscriber</span> <span class="op">=</span> <span class="ident">PointCloudSubscriber::new</span>(<span class="ident">args</span>.<span class="ident">point_cloud_address</span>).<span class="ident">unwrap</span>();
+    <span class="kw">let</span> <span class="ident">command_publisher</span> <span class="op">=</span> <span class="ident">CommandPublisher::new</span>(<span class="ident">args</span>.<span class="ident">command_address</span>).<span class="ident">unwrap</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">object_container</span> <span class="op">=</span> <span class="ident">ObjectContainer::new</span>();
     <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">window</span> <span class="op">=</span> <span class="ident">Window::new</span>(<span class="string">&quot;rustviz&quot;</span>);
 
@@ -648,27 +738,69 @@
     );
     <span class="ident">camera</span>.<span class="ident">set_dist_step</span>(<span class="number">4.0</span>);
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_mouse_position</span> <span class="op">=</span> <span class="ident">na::Point2::new</span>(<span class="number">0.</span>, <span class="number">0.</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_projected_point</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">na::Point3</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_button_down_pose</span>: <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">na::Point3</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span><span class="op">&gt;</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">command_id</span> <span class="op">=</span> <span class="number">0_u32</span>;
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">click_indicator</span> <span class="op">=</span> <span class="ident">window</span>.<span class="ident">add_sphere</span>(<span class="number">0.02</span>);
+    <span class="ident">click_indicator</span>.<span class="ident">set_color</span>(<span class="number">1.0</span>, <span class="number">1.0</span>, <span class="number">0.0</span>);
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">release_indicator</span> <span class="op">=</span> <span class="ident">window</span>.<span class="ident">add_sphere</span>(<span class="number">0.01</span>);
+    <span class="ident">release_indicator</span>.<span class="ident">set_color</span>(<span class="number">0.0</span>, <span class="number">1.0</span>, <span class="number">1.0</span>);
 
-    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">indicator</span> <span class="op">=</span> <span class="ident">window</span>.<span class="ident">add_sphere</span>(<span class="number">0.02</span>);
-    <span class="ident">indicator</span>.<span class="ident">set_local_translation</span>(<span class="ident">na::Point3::new</span>(<span class="number">0.</span>, <span class="number">0.</span>, <span class="number">1.</span>).<span class="ident">into</span>());
+    <span class="kw">let</span> <span class="kw-2">mut</span> <span class="ident">last_command</span> <span class="op">=</span> <span class="prelude-val">None</span>;
 
     <span class="kw">while</span> <span class="op">!</span><span class="ident">window</span>.<span class="ident">should_close</span>() {
         <span class="comment">// process window events</span>
         <span class="kw">for</span> <span class="ident">event</span> <span class="kw">in</span> <span class="ident">window</span>.<span class="ident">events</span>().<span class="ident">iter</span>() {
             <span class="kw">match</span> <span class="ident">event</span>.<span class="ident">value</span> {
-                <span class="ident">WindowEvent::MouseButton</span>(<span class="ident">button</span>, <span class="ident">Action::Press</span>, <span class="ident">_modif</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="kw">if</span> <span class="ident">button</span> <span class="op">=</span><span class="op">=</span> <span class="ident">MouseButton::Button3</span> {
-                        <span class="kw">let</span> <span class="ident">window_size</span>: <span class="ident">na::Vector2</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">na::convert</span>(<span class="ident">window</span>.<span class="ident">size</span>());
-                        <span class="kw">let</span> (<span class="ident">point</span>, <span class="ident">vector</span>) <span class="op">=</span> <span class="ident">camera</span>.<span class="ident">unproject</span>(<span class="kw-2">&amp;</span><span class="ident">last_mouse_position</span>, <span class="kw-2">&amp;</span><span class="ident">window_size</span>);
-                        <span class="kw">let</span> <span class="ident">position</span> <span class="op">=</span> <span class="ident">project_to_ground_plane</span>(<span class="kw-2">&amp;</span><span class="ident">point</span>, <span class="kw-2">&amp;</span><span class="ident">vector</span>);
-                        <span class="ident">indicator</span>.<span class="ident">set_local_translation</span>(<span class="ident">position</span>.<span class="ident">into</span>());
+                <span class="ident">WindowEvent::MouseButton</span>(<span class="ident">MouseButton::Button3</span>, <span class="ident">Action::Press</span>, <span class="ident">_modif</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">last_pose</span>) <span class="op">=</span> <span class="ident">last_projected_point</span> {
+                        <span class="ident">click_indicator</span>.<span class="ident">set_visible</span>(<span class="bool-val">true</span>);
+                        <span class="ident">release_indicator</span>.<span class="ident">set_visible</span>(<span class="bool-val">false</span>);
+                        <span class="ident">last_button_down_pose</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">last_pose</span>);
+                        <span class="ident">click_indicator</span>.<span class="ident">set_local_translation</span>(<span class="ident">last_pose</span>.<span class="ident">into</span>());
+                    }
+                }
+                <span class="ident">WindowEvent::MouseButton</span>(<span class="ident">MouseButton::Button3</span>, <span class="ident">Action::Release</span>, <span class="ident">_modif</span>) <span class="op">=</span><span class="op">&gt;</span> {
+                    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">last_pose</span>) <span class="op">=</span> <span class="ident">last_projected_point</span> {
+                        <span class="ident">click_indicator</span>.<span class="ident">set_visible</span>(<span class="bool-val">true</span>);
+                        <span class="ident">release_indicator</span>.<span class="ident">set_visible</span>(<span class="bool-val">true</span>);
+                        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">last_button_down</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">last_button_down_pose</span> {
+                            <span class="kw">let</span> <span class="ident">command</span> <span class="op">=</span> <span class="ident">command_from_ground_plane_poses</span>(
+                                <span class="ident">last_button_down</span>,
+                                <span class="kw-2">&amp;</span><span class="ident">last_pose</span>,
+                                <span class="ident">command_id</span>,
+                            );
+                            <span class="ident">last_command</span> <span class="op">=</span> <span class="prelude-val">Some</span>(<span class="ident">command</span>);
+                            <span class="ident">command_id</span> <span class="op">+</span><span class="op">=</span> <span class="number">1</span>;
+                        }
+                        <span class="ident">last_button_down_pose</span> <span class="op">=</span> <span class="prelude-val">None</span>;
+                        <span class="ident">release_indicator</span>.<span class="ident">set_local_translation</span>(<span class="ident">last_pose</span>.<span class="ident">into</span>());
                     }
                 }
                 <span class="ident">WindowEvent::CursorPos</span>(<span class="ident">x</span>, <span class="ident">y</span>, <span class="ident">_modif</span>) <span class="op">=</span><span class="op">&gt;</span> {
-                    <span class="ident">last_mouse_position</span> <span class="op">=</span> <span class="ident">na::Point2::new</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">f32</span>, <span class="ident">y</span> <span class="kw">as</span> <span class="ident">f32</span>);
+                    <span class="kw">let</span> <span class="ident">mouse_position</span> <span class="op">=</span> <span class="ident">na::Point2::new</span>(<span class="ident">x</span> <span class="kw">as</span> <span class="ident">f32</span>, <span class="ident">y</span> <span class="kw">as</span> <span class="ident">f32</span>);
+                    <span class="kw">let</span> <span class="ident">window_size</span>: <span class="ident">na::Vector2</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span> <span class="op">=</span> <span class="ident">na::convert</span>(<span class="ident">window</span>.<span class="ident">size</span>());
+                    <span class="kw">let</span> (<span class="ident">point</span>, <span class="ident">vector</span>) <span class="op">=</span> <span class="ident">camera</span>.<span class="ident">unproject</span>(<span class="kw-2">&amp;</span><span class="ident">mouse_position</span>, <span class="kw-2">&amp;</span><span class="ident">window_size</span>);
+                    <span class="ident">last_projected_point</span> <span class="op">=</span>
+                        <span class="ident">project_to_ground_plane_with_height</span>(<span class="kw-2">&amp;</span><span class="ident">point</span>, <span class="kw-2">&amp;</span><span class="ident">vector</span>, <span class="number">0.01</span>);
                 }
                 <span class="kw">_</span> <span class="op">=</span><span class="op">&gt;</span> (),
+            }
+        }
+
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">command</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">last_command</span> {
+            <span class="kw">if</span> <span class="ident">command_publisher</span>.<span class="ident">publish</span>(<span class="ident">command</span>).<span class="ident">is_err</span>() {
+                <span class="macro">eprintln!</span>(<span class="string">&quot;Failed to publish command&quot;</span>);
+            }
+        }
+
+        <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">last_button_down</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">last_button_down_pose</span> {
+            <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">last_project</span>) <span class="op">=</span> <span class="kw-2">&amp;</span><span class="ident">last_projected_point</span> {
+                <span class="ident">window</span>.<span class="ident">draw_line</span>(
+                    <span class="ident">last_button_down</span>,
+                    <span class="ident">last_project</span>,
+                    <span class="kw-2">&amp;</span><span class="ident">na::Point3::new</span>(<span class="number">1.0</span>, <span class="number">0.0</span>, <span class="number">1.0</span>),
+                )
             }
         }
 
@@ -702,12 +834,44 @@
 <span class="kw">fn</span> <span class="ident">project_to_ground_plane</span>(
     <span class="ident">position</span>: <span class="kw-2">&amp;</span><span class="ident">na::Point3</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>,
     <span class="ident">direction</span>: <span class="kw-2">&amp;</span><span class="ident">na::Vector3</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>,
-) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">na::Point3</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span> {
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">na::Point3</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span><span class="op">&gt;</span> {
     <span class="kw">let</span> <span class="ident">height</span> <span class="op">=</span> <span class="ident">position</span>.<span class="ident">y</span>;
     <span class="kw">let</span> <span class="ident">angle</span> <span class="op">=</span> <span class="ident">na::Rotation3::rotation_between</span>(<span class="kw-2">&amp;</span><span class="ident">na::Vector3::new</span>(<span class="number">0.</span>, <span class="op">-</span><span class="number">1.</span>, <span class="number">0.</span>), <span class="ident">direction</span>);
-    <span class="kw">let</span> <span class="ident">angle</span> <span class="op">=</span> <span class="ident">angle</span>.<span class="ident">unwrap</span>().<span class="ident">angle</span>();
-    <span class="kw">let</span> <span class="ident">vector_dist</span> <span class="op">=</span> <span class="ident">height</span> <span class="op">/</span> <span class="ident">angle</span>.<span class="ident">cos</span>();
-    <span class="ident">position</span> <span class="op">+</span> <span class="ident">direction</span> <span class="op">*</span> <span class="ident">vector_dist</span>
+    <span class="kw">if</span> <span class="kw">let</span> <span class="prelude-val">Some</span>(<span class="ident">angle</span>) <span class="op">=</span> <span class="ident">angle</span> {
+        <span class="comment">// could be map</span>
+        <span class="kw">let</span> <span class="ident">angle</span> <span class="op">=</span> <span class="ident">angle</span>.<span class="ident">angle</span>();
+        <span class="kw">let</span> <span class="ident">vector_dist</span> <span class="op">=</span> <span class="ident">height</span> <span class="op">/</span> <span class="ident">angle</span>.<span class="ident">cos</span>();
+        <span class="prelude-val">Some</span>(<span class="ident">position</span> <span class="op">+</span> <span class="ident">direction</span> <span class="op">*</span> <span class="ident">vector_dist</span>)
+    } <span class="kw">else</span> {
+        <span class="prelude-val">None</span>
+    }
+}
+
+<span class="kw">fn</span> <span class="ident">project_to_ground_plane_with_height</span>(
+    <span class="ident">position</span>: <span class="kw-2">&amp;</span><span class="ident">na::Point3</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>,
+    <span class="ident">direction</span>: <span class="kw-2">&amp;</span><span class="ident">na::Vector3</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>,
+    <span class="ident">height</span>: <span class="ident">f32</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="prelude-ty">Option</span><span class="op">&lt;</span><span class="ident">na::Point3</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span><span class="op">&gt;</span> {
+    <span class="ident">project_to_ground_plane</span>(<span class="ident">position</span>, <span class="ident">direction</span>)
+        .<span class="ident">map</span>(<span class="op">|</span><span class="ident">point</span><span class="op">|</span> <span class="ident">na::Point3::new</span>(<span class="ident">point</span>.<span class="ident">x</span>, <span class="ident">point</span>.<span class="ident">y</span> <span class="op">+</span> <span class="ident">height</span>, <span class="ident">point</span>.<span class="ident">z</span>))
+}
+
+<span class="kw">fn</span> <span class="ident">command_from_ground_plane_poses</span>(
+    <span class="ident">origin</span>: <span class="kw-2">&amp;</span><span class="ident">na::Point3</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>,
+    <span class="ident">target</span>: <span class="kw-2">&amp;</span><span class="ident">na::Point3</span><span class="op">&lt;</span><span class="ident">f32</span><span class="op">&gt;</span>,
+    <span class="ident">command_id</span>: <span class="ident">u32</span>,
+) <span class="op">-</span><span class="op">&gt;</span> <span class="ident">Command</span> {
+    <span class="kw">let</span> <span class="ident">origin_right_hand</span> <span class="op">=</span> <span class="ident">inverse_convert_coordinate_system</span>(<span class="kw-2">&amp;</span><span class="ident">origin</span>.<span class="ident">coords</span>);
+    <span class="kw">let</span> <span class="ident">target_right_hand</span> <span class="op">=</span> <span class="ident">inverse_convert_coordinate_system</span>(<span class="kw-2">&amp;</span><span class="ident">target</span>.<span class="ident">coords</span>);
+
+    <span class="kw">let</span> <span class="ident">transform_x</span> <span class="op">=</span> <span class="ident">origin_right_hand</span>.<span class="number">0</span> <span class="op">-</span> <span class="ident">target_right_hand</span>.<span class="number">0</span>;
+    <span class="kw">let</span> <span class="ident">transform_y</span> <span class="op">=</span> <span class="ident">origin_right_hand</span>.<span class="number">1</span> <span class="op">-</span> <span class="ident">target_right_hand</span>.<span class="number">1</span>;
+    <span class="ident">Command::new</span>(
+        <span class="ident">command_id</span>,
+        (<span class="ident">origin_right_hand</span>.<span class="number">0</span>, <span class="ident">origin_right_hand</span>.<span class="number">1</span>),
+        <span class="op">-</span><span class="ident">transform_y</span>.<span class="ident">atan2</span>(<span class="op">-</span><span class="ident">transform_x</span>),
+        <span class="ident">na::distance</span>(<span class="ident">origin</span>, <span class="ident">target</span>),
+    )
 }
 
 <span class="kw">fn</span> <span class="ident">add_ground_plane</span>(<span class="ident">window</span>: <span class="kw-2">&amp;</span><span class="kw-2">mut</span> <span class="ident">Window</span>) {
