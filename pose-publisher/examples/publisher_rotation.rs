@@ -25,7 +25,7 @@ fn main() -> Result<(), PosePublisherError> {
                 .add("rotated_object", (0., 0., i))
                 .with_shape(Shape::Cube(0.3, 0.01, 0.01))
                 .with_rotation((w, 0., y, 0.));
-            pose_publisher.publish(update)?;
+            pose_publisher.publish(&update)?;
         }
         for i in (0..=100).rev() {
             let i = i as f32 / 100.0;
@@ -38,7 +38,7 @@ fn main() -> Result<(), PosePublisherError> {
                 .add("rotated_object", (0., 0., i))
                 .with_shape(Shape::Cube(0.3, 0.01, 0.01))
                 .with_rotation((w, 0., y, 0.));
-            pose_publisher.publish(update)?;
+            pose_publisher.publish(&update)?;
         }
     }
 }

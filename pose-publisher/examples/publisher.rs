@@ -27,7 +27,7 @@ fn main() -> Result<(), PosePublisherError> {
             update
                 .add("test line", (0., 0., 0.01 * i))
                 .with_shape(Shape::Line((0., 0., 0.)));
-            pose_publisher.publish(update)?;
+            pose_publisher.publish(&update)?;
         }
         for i in 0..=100 {
             let i = i as f32;
@@ -41,11 +41,11 @@ fn main() -> Result<(), PosePublisherError> {
                 .add("test line", (0., 0., 0.01 * i))
                 .with_shape(Shape::Line((0., 0., 0.)))
                 .with_color(Color::Magenta);
-            pose_publisher.publish(update)?;
+            pose_publisher.publish(&update)?;
         }
     }
     let mut update = PoseClientUpdate::new();
     update.delete("obj_a");
-    pose_publisher.publish(update)?;
+    pose_publisher.publish(&update)?;
     Ok(())
 }
