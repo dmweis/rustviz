@@ -5,14 +5,18 @@ use std::net::SocketAddrV4;
 use std::net::UdpSocket;
 use std::str;
 
-fn bind_multicast(addr: &SocketAddrV4, multi_addr: &SocketAddrV4) -> Result<UdpSocket> {
+fn bind_multicast(
+    addr: &SocketAddrV4,
+    multi_addr: &SocketAddrV4,
+    non_blocking: bool,
+) -> Result<UdpSocket> {
     // this code was inspired by https://github.com/henninglive/tokio-udp-multicast-chat
     if !multi_addr.ip().is_multicast() {
         return Err(PosePublisherError::AddressNotMulticast(*multi_addr));
     }
     let socket = Socket::new(Domain::IPV4, Type::DGRAM, Some(Protocol::UDP))?;
     socket.set_reuse_address(true)?;
-    socket.set_nonblocking(true)?;
+    socket.set_nonblocking(non_blocking)?;
     socket.bind(&socket2::SockAddr::from(*addr))?;
     socket.set_multicast_loop_v4(true)?;
     socket.join_multicast_v4(multi_addr.ip(), addr.ip())?;
@@ -29,7 +33,18 @@ pub struct MulticastMessenger {
 impl MulticastMessenger {
     pub fn new(multicast_address: SocketAddrV4) -> Result<Self> {
         let addr = SocketAddrV4::new(ALL_INTERFACES.into(), multicast_address.port());
-        let socket = bind_multicast(&addr, &multicast_address)?;
+        let socket = bind_multicast(&addr, &multicast_address, true)?;
+        socket.set_read_timeout(None)?;
+        Ok(Self {
+            socket,
+            multicast_address,
+        })
+    }
+
+    pub fn new_blocking(multicast_address: SocketAddrV4) -> Result<Self> {
+        let addr = SocketAddrV4::new(ALL_INTERFACES.into(), multicast_address.port());
+        let socket = bind_multicast(&addr, &multicast_address, false)?;
+        // maybe allow settings timeout for blocking calls?
         socket.set_read_timeout(None)?;
         Ok(Self {
             socket,

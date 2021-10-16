@@ -51,6 +51,11 @@ impl PoseSubscriber {
         Ok(Self { messenger })
     }
 
+    pub fn new_blocking(multicast_address: SocketAddrV4) -> Result<Self> {
+        let messenger = MulticastMessenger::new_blocking(multicast_address)?;
+        Ok(Self { messenger })
+    }
+
     pub fn next(&self) -> Result<PoseClientUpdate> {
         self.messenger.receive()
     }
@@ -82,6 +87,11 @@ impl PointCloudSubscriber {
         Ok(Self { messenger })
     }
 
+    pub fn new_blocking(multicast_address: SocketAddrV4) -> Result<Self> {
+        let messenger = MulticastMessenger::new_blocking(multicast_address)?;
+        Ok(Self { messenger })
+    }
+
     pub fn next(&self) -> Result<PointCloud2> {
         self.messenger.receive()
     }
@@ -110,6 +120,11 @@ pub struct CommandSubscriber {
 impl CommandSubscriber {
     pub fn new(multicast_address: SocketAddrV4) -> Result<Self> {
         let messenger = MulticastMessenger::new(multicast_address)?;
+        Ok(Self { messenger })
+    }
+
+    pub fn new_blocking(multicast_address: SocketAddrV4) -> Result<Self> {
+        let messenger = MulticastMessenger::new_blocking(multicast_address)?;
         Ok(Self { messenger })
     }
 
