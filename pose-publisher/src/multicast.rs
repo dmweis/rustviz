@@ -37,8 +37,8 @@ impl MulticastMessenger {
         })
     }
 
-    pub fn send<T: Serialize>(&self, message: T) -> Result<()> {
-        let payload = serde_json::to_string(&message).unwrap();
+    pub fn send<T: Serialize>(&self, message: &T) -> Result<()> {
+        let payload = serde_json::to_string(message).unwrap();
         self.socket
             .send_to(payload.as_bytes(), self.multicast_address)?;
         Ok(())
