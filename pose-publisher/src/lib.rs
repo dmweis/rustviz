@@ -113,7 +113,7 @@ impl CommandSubscriber {
         Ok(Self { messenger })
     }
 
-    pub fn next(&self) -> Result<PointCloud2> {
+    pub fn next(&self) -> Result<Command> {
         self.messenger.receive()
     }
 }
