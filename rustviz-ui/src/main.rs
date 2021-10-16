@@ -9,9 +9,10 @@ use kiss3d::{
 };
 use nalgebra as na;
 use pose_publisher::{
+    commands::Command,
     point_cloud::PointCloud2,
     pose::{Color, Shape},
-    ObjectPose, PointCloudSubscriber, PoseSubscriber,
+    CommandPublisher, ObjectPose, PointCloudSubscriber, PoseSubscriber,
 };
 use std::{
     collections::HashMap,
@@ -21,6 +22,10 @@ use std::{
 
 fn convert_coordinate_system((x, y, z): (f32, f32, f32)) -> na::Vector3<f32> {
     na::Vector3::new(y, z, x)
+}
+
+fn inverse_convert_coordinate_system(vector: &na::Vector3<f32>) -> (f32, f32, f32) {
+    (vector.z, vector.x, vector.y)
 }
 
 fn convert_rotation_coordinate_system(
@@ -257,16 +262,19 @@ impl PointCloudContainer {
 #[derive(Clap)]
 #[clap()]
 struct Args {
-    #[clap(short, long, default_value = "239.0.0.22:7072")]
+    #[clap(long, default_value = "239.0.0.22:7072")]
     address: SocketAddrV4,
-    #[clap(short, long, default_value = "239.0.0.22:7075")]
+    #[clap(long, default_value = "239.0.0.22:7075")]
     point_cloud_address: SocketAddrV4,
+    #[clap(long, default_value = "239.0.0.22:7076")]
+    command_address: SocketAddrV4,
 }
 
 fn main() -> Result<()> {
     let args = Args::parse();
     let pose_subscriber = PoseSubscriber::new(args.address).unwrap();
     let point_cloud_subscriber = PointCloudSubscriber::new(args.point_cloud_address).unwrap();
+    let command_publisher = CommandPublisher::new(args.command_address).unwrap();
     let mut object_container = ObjectContainer::new();
     let mut window = Window::new("rustviz");
 
@@ -280,27 +288,69 @@ fn main() -> Result<()> {
     );
     camera.set_dist_step(4.0);
 
-    let mut last_mouse_position = na::Point2::new(0., 0.);
+    let mut last_projected_point: Option<na::Point3<f32>> = None;
+    let mut last_button_down_pose: Option<na::Point3<f32>> = None;
+    let mut command_id = 0_u32;
+    let mut click_indicator = window.add_sphere(0.02);
+    click_indicator.set_color(1.0, 1.0, 0.0);
+    let mut release_indicator = window.add_sphere(0.01);
+    release_indicator.set_color(0.0, 1.0, 1.0);
 
-    let mut indicator = window.add_sphere(0.02);
-    indicator.set_local_translation(na::Point3::new(0., 0., 1.).into());
+    let mut last_command = None;
 
     while !window.should_close() {
         // process window events
         for event in window.events().iter() {
             match event.value {
-                WindowEvent::MouseButton(button, Action::Press, _modif) => {
-                    if button == MouseButton::Button3 {
-                        let window_size: na::Vector2<f32> = na::convert(window.size());
-                        let (point, vector) = camera.unproject(&last_mouse_position, &window_size);
-                        let position = project_to_ground_plane(&point, &vector);
-                        indicator.set_local_translation(position.into());
+                WindowEvent::MouseButton(MouseButton::Button3, Action::Press, _modif) => {
+                    if let Some(last_pose) = last_projected_point {
+                        click_indicator.set_visible(true);
+                        release_indicator.set_visible(false);
+                        last_button_down_pose = Some(last_pose);
+                        click_indicator.set_local_translation(last_pose.into());
+                    }
+                }
+                WindowEvent::MouseButton(MouseButton::Button3, Action::Release, _modif) => {
+                    if let Some(last_pose) = last_projected_point {
+                        click_indicator.set_visible(true);
+                        release_indicator.set_visible(true);
+                        if let Some(last_button_down) = &last_button_down_pose {
+                            let command = command_from_ground_plane_poses(
+                                last_button_down,
+                                &last_pose,
+                                command_id,
+                            );
+                            last_command = Some(command);
+                            command_id += 1;
+                        }
+                        last_button_down_pose = None;
+                        release_indicator.set_local_translation(last_pose.into());
                     }
                 }
                 WindowEvent::CursorPos(x, y, _modif) => {
-                    last_mouse_position = na::Point2::new(x as f32, y as f32);
+                    let mouse_position = na::Point2::new(x as f32, y as f32);
+                    let window_size: na::Vector2<f32> = na::convert(window.size());
+                    let (point, vector) = camera.unproject(&mouse_position, &window_size);
+                    last_projected_point =
+                        project_to_ground_plane_with_height(&point, &vector, 0.01);
                 }
                 _ => (),
+            }
+        }
+
+        if let Some(command) = &last_command {
+            if command_publisher.publish(command).is_err() {
+                eprintln!("Failed to publish command");
+            }
+        }
+
+        if let Some(last_button_down) = &last_button_down_pose {
+            if let Some(last_project) = &last_projected_point {
+                window.draw_line(
+                    last_button_down,
+                    last_project,
+                    &na::Point3::new(1.0, 0.0, 1.0),
+                )
             }
         }
 
@@ -334,12 +384,44 @@ fn main() -> Result<()> {
 fn project_to_ground_plane(
     position: &na::Point3<f32>,
     direction: &na::Vector3<f32>,
-) -> na::Point3<f32> {
+) -> Option<na::Point3<f32>> {
     let height = position.y;
     let angle = na::Rotation3::rotation_between(&na::Vector3::new(0., -1., 0.), direction);
-    let angle = angle.unwrap().angle();
-    let vector_dist = height / angle.cos();
-    position + direction * vector_dist
+    if let Some(angle) = angle {
+        // could be map
+        let angle = angle.angle();
+        let vector_dist = height / angle.cos();
+        Some(position + direction * vector_dist)
+    } else {
+        None
+    }
+}
+
+fn project_to_ground_plane_with_height(
+    position: &na::Point3<f32>,
+    direction: &na::Vector3<f32>,
+    height: f32,
+) -> Option<na::Point3<f32>> {
+    project_to_ground_plane(position, direction)
+        .map(|point| na::Point3::new(point.x, point.y + height, point.z))
+}
+
+fn command_from_ground_plane_poses(
+    origin: &na::Point3<f32>,
+    target: &na::Point3<f32>,
+    command_id: u32,
+) -> Command {
+    let origin_right_hand = inverse_convert_coordinate_system(&origin.coords);
+    let target_right_hand = inverse_convert_coordinate_system(&target.coords);
+
+    let transform_x = origin_right_hand.0 - target_right_hand.0;
+    let transform_y = origin_right_hand.1 - target_right_hand.1;
+    Command::new(
+        command_id,
+        (origin_right_hand.0, origin_right_hand.1),
+        -transform_y.atan2(-transform_x),
+        na::distance(origin, target),
+    )
 }
 
 fn add_ground_plane(window: &mut Window) {
