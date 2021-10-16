@@ -1,6 +1,12 @@
 use anyhow::Result;
 use clap::Clap;
-use kiss3d::{light::Light, scene::SceneNode, window::Window};
+use kiss3d::{
+    camera::Camera,
+    event::{Action, MouseButton, WindowEvent},
+    light::Light,
+    scene::SceneNode,
+    window::Window,
+};
 use nalgebra as na;
 use pose_publisher::{
     point_cloud::PointCloud2,
@@ -274,7 +280,30 @@ fn main() -> Result<()> {
     );
     camera.set_dist_step(4.0);
 
+    let mut last_mouse_position = na::Point2::new(0., 0.);
+
+    let mut indicator = window.add_sphere(0.02);
+    indicator.set_local_translation(na::Point3::new(0., 0., 1.).into());
+
     while !window.should_close() {
+        // process window events
+        for event in window.events().iter() {
+            match event.value {
+                WindowEvent::MouseButton(button, Action::Press, _modif) => {
+                    if button == MouseButton::Button3 {
+                        let window_size: na::Vector2<f32> = na::convert(window.size());
+                        let (point, vector) = camera.unproject(&last_mouse_position, &window_size);
+                        let position = project_to_ground_plane(&point, &vector);
+                        indicator.set_local_translation(position.into());
+                    }
+                }
+                WindowEvent::CursorPos(x, y, _modif) => {
+                    last_mouse_position = na::Point2::new(x as f32, y as f32);
+                }
+                _ => (),
+            }
+        }
+
         while let Ok(update) = pose_subscriber.next() {
             for object_update in update.updates() {
                 object_container.update_object(object_update, &mut window);
@@ -300,6 +329,17 @@ fn main() -> Result<()> {
     }
     window.close();
     Ok(())
+}
+
+fn project_to_ground_plane(
+    position: &na::Point3<f32>,
+    direction: &na::Vector3<f32>,
+) -> na::Point3<f32> {
+    let height = position.y;
+    let angle = na::Rotation3::rotation_between(&na::Vector3::new(0., -1., 0.), direction);
+    let angle = angle.unwrap().angle();
+    let vector_dist = height / angle.cos();
+    position + direction * vector_dist
 }
 
 fn add_ground_plane(window: &mut Window) {
