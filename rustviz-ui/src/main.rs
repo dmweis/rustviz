@@ -13,14 +13,14 @@ use std::{
     time::{Duration, Instant},
 };
 
-fn convert_coordinate_system(position: (f32, f32, f32)) -> na::Vector3<f32> {
-    na::Vector3::new(position.1, position.2, position.0)
+fn convert_coordinate_system((x, y, z): (f32, f32, f32)) -> na::Vector3<f32> {
+    na::Vector3::new(y, z, x)
 }
 
-fn convert_rotation_coordinate_system(rotation: (f32, f32, f32, f32)) -> na::UnitQuaternion<f32> {
-    na::UnitQuaternion::new_normalize(na::Quaternion::new(
-        rotation.3, rotation.1, rotation.2, rotation.0,
-    ))
+fn convert_rotation_coordinate_system(
+    (x, y, z, w): (f32, f32, f32, f32),
+) -> na::UnitQuaternion<f32> {
+    na::UnitQuaternion::new_normalize(na::Quaternion::new(w, y, z, x))
 }
 
 fn attach_node_type(shape: Shape, window: &mut Window) -> Option<SceneNode> {
