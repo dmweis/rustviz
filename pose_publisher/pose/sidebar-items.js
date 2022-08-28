@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Color",""],["Shape",""]],"struct":[["ObjectPose",""],["PoseClientUpdate",""]]};
